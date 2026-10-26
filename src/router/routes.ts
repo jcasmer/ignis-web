@@ -71,6 +71,21 @@ const routes: RouteRecordRaw[] = [
         meta: { area: 'tenant', minRole: 'admin' },
       },
       {
+        path: 'channels',
+        component: () => import('@/pages/tenant/ChannelsPage.vue'),
+        meta: { area: 'tenant', minRole: 'admin' },
+      },
+      {
+        path: 'mail',
+        component: () => import('@/pages/tenant/MailPage.vue'),
+        meta: { area: 'tenant', minRole: 'admin' },
+      },
+      {
+        path: 'privacy',
+        component: () => import('@/pages/tenant/PrivacyPage.vue'),
+        meta: { area: 'tenant', minRole: 'admin' },
+      },
+      {
         path: 'actions',
         component: () => import('@/pages/tenant/ActionsPage.vue'),
         meta: { area: 'tenant', minRole: 'admin' },

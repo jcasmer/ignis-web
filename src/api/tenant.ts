@@ -169,6 +169,79 @@ export interface UsageItem {
   charged_micro: number;
 }
 
+export type ChannelName = 'whatsapp' | 'instagram' | 'facebook';
+
+export interface Channel {
+  channel: ChannelName;
+  external_account_id: string;
+  status: 'active' | 'disabled';
+  updated_at: string;
+}
+
+export interface MailSettings {
+  business_name: string;
+  recipients: string[];
+  sent_today: number;
+}
+
+export interface Email {
+  id: string;
+  kind: 'business' | 'contact';
+  to: string;
+  subject: string;
+  status: 'pending' | 'sent' | 'failed';
+  reason?: string;
+  provider_id?: string;
+  created_at: string;
+  sent_at?: string;
+}
+
+export type ConsentPurpose = 'data_processing' | 'email';
+
+export interface Consent {
+  purpose: ConsentPurpose;
+  status: 'notified' | 'granted' | 'revoked';
+  address?: string;
+  source?: 'continued' | 'explicit' | 'api';
+  notice_version: number;
+  evidence?: string;
+  updated_at: string;
+}
+
+export interface Contact {
+  id: string;
+  channel: string;
+  external_id: string;
+  display_name?: string;
+  created_at: string;
+  consents: Consent[];
+}
+
+export interface ConsentInput {
+  purpose: ConsentPurpose;
+  granted: boolean;
+  address?: string;
+  evidence?: string;
+}
+
+export interface Erasure {
+  id: string;
+  contact_code: string;
+  channel: string;
+  reason: 'request' | 'retention';
+  requested_by: string;
+  erased_at: string;
+  proofs: {
+    purpose: ConsentPurpose;
+    status: 'notified' | 'granted' | 'revoked';
+    source?: 'continued' | 'explicit' | 'api';
+    notice_version: number;
+    evidence?: string;
+    granted_at: string;
+    updated_at: string;
+  }[];
+}
+
 function query(params: Record<string, string | number | undefined>): string {
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== '') q.set(k, String(v));
@@ -211,6 +284,24 @@ export function tenantApi(http: Http) {
     reindexAll: () => http.post<{ documents: number }>('/knowledge/reindex', {}),
     deleteDocument: (id: string) =>
       http.del<void>(`/knowledge/documents/${encodeURIComponent(id)}`),
+
+    channels: () => http.get<{ items: Channel[] }>('/channels'),
+    configureChannel: (
+      channel: ChannelName,
+      body: { external_account_id: string; access_token: string },
+    ) => http.put<Channel>(`/channels/${channel}`, body),
+
+    mailSettings: () => http.get<MailSettings>('/mail'),
+    mailOutbox: (limit = 50) => http.get<{ items: Email[] }>(`/mail/outbox${query({ limit })}`),
+
+    privacyNotice: () => http.get<{ notice: string; version: number }>('/privacy'),
+    contacts: (limit = 100) => http.get<{ items: Contact[] }>(`/contacts${query({ limit })}`),
+    recordConsent: (id: string, body: ConsentInput) =>
+      http.post<void>(`/contacts/${encodeURIComponent(id)}/consents`, body),
+    exportContact: (id: string) =>
+      http.get<Record<string, unknown>>(`/contacts/${encodeURIComponent(id)}/export`),
+    eraseContact: (id: string) => http.del<void>(`/contacts/${encodeURIComponent(id)}`),
+    erasures: (limit = 100) => http.get<{ items: Erasure[] }>(`/erasures${query({ limit })}`),
 
     balance: () => http.get<Balance>('/credits/balance'),
     ledger: (p: { cursor?: string; limit?: number } = {}) =>
