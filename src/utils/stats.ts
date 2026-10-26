@@ -12,6 +12,16 @@ export function formatMicroUsd(micro: number): string {
   }).format(micro / 1_000_000);
 }
 
+/** Four decimals: one answer of the model costs a fraction of a cent. */
+export function formatMicroUsdPrecise(micro: number): string {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
+  }).format(micro / 1_000_000);
+}
+
 export function formatNumber(n: number): string {
   return new Intl.NumberFormat('es-CO').format(n);
 }

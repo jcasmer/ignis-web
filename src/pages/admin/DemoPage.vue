@@ -8,7 +8,7 @@ import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
 import { useSessionStore } from '@/stores/session';
 import { MAX_POLLS, newDemoSession, POLL_MS, SUGGESTIONS } from '@/utils/demo';
-import { formatMicroUsd } from '@/utils/stats';
+import { formatMicroUsd, formatMicroUsdPrecise } from '@/utils/stats';
 
 const { t } = useI18n();
 const $q = useQuasar();
@@ -372,7 +372,7 @@ function onKey(e: KeyboardEvent) {
               <div class="col-6 col-sm-4">
                 <div class="ig-eyebrow q-mb-xs">{{ t('admin.demo.credit') }}</div>
                 <div class="text-weight-bold ig-num">
-                  {{ formatMicroUsd(status.balance_micro) }}
+                  {{ formatMicroUsdPrecise(status.balance_micro) }}
                 </div>
               </div>
               <div class="col-6 col-sm-4">
