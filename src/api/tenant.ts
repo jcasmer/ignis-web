@@ -216,6 +216,17 @@ export interface Connector extends Omit<ConnectorInput, 'secret'> {
   updated_at: string;
 }
 
+export interface ConnectorTestResult {
+  /** The system answered successfully. */
+  ok: boolean;
+  /** What the assistant would read, cut short. */
+  output?: string;
+  truncated?: boolean;
+  /** Why the call failed, when it did. */
+  message?: string;
+  duration_ms: number;
+}
+
 export interface Email {
   id: string;
   kind: 'business' | 'contact';

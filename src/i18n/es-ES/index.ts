@@ -613,6 +613,24 @@ export default {
         fields: 'Campos de la respuesta (opcional)',
         fieldsHint:
           'Rutas con puntos, una por línea. Si lo dejas vacío se muestra toda la respuesta.',
+        test: {
+          open: 'Probar',
+          title: 'Probar {tool}',
+          hint: 'Llama a la operación una vez, con los argumentos de abajo, y muestra lo que leería el asistente.',
+          privacy:
+            'Lo que responde el sistema es información real del cliente. Se muestra solo aquí, cortada a 4 KB, y no se guarda.',
+          args: 'Argumentos (JSON)',
+          run: 'Probar ahora',
+          ok: 'El sistema respondió',
+          failed: 'La llamada falló',
+          truncated: 'La respuesta se cortó: solo se muestran los primeros 4 KB.',
+          noOutput: 'La respuesta no trajo contenido.',
+          duration: '{ms} ms',
+          badJson: 'Los argumentos deben ser un objeto JSON válido.',
+          rejected:
+            'La API rechazó la prueba: revisa que los argumentos cumplan el esquema de la operación.',
+          error: 'No se pudo hacer la prueba. Inténtalo de nuevo.',
+        },
         addOperation: 'Agregar operación',
         import: {
           open: 'Importar de OpenAPI',
