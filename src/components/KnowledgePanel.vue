@@ -9,7 +9,10 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
+import KnowledgeChunks from '@/components/KnowledgeChunks.vue';
+import KnowledgeSearch from '@/components/KnowledgeSearch.vue';
 import { ACCEPT_ATTR, uploadProblem } from '@/utils/format';
+import { strategyKey } from '@/utils/knowledge';
 
 const props = defineProps<{ client: KnowledgeClient }>();
 const { t } = useI18n();
@@ -31,6 +34,13 @@ const confirmDelete = computed({
   },
 });
 const confirmAll = ref(false);
+// The documents whose chunks are shown (only the Ignis team can look inside).
+const inside = ref<Set<string>>(new Set());
+function toggleInside(id: string) {
+  const next = new Set(inside.value);
+  if (!next.delete(id)) next.add(id);
+  inside.value = next;
+}
 const busy = ref(false);
 
 const ICONS: Record<KnowledgeDocument['source_type'], string> = {
@@ -169,6 +179,8 @@ async function reindexAll() {
       />
     </div>
 
+    <KnowledgeSearch v-if="client.search" :client="client" />
+
     <input
       ref="picker"
       type="file"
@@ -251,6 +263,13 @@ async function reindexAll() {
                 {{ t('tenant.knowledge.keywordOnly') }}
               </span>
             </div>
+            <div v-if="d.status === 'ready'" class="text-caption ig-muted q-mt-xs">
+              {{ t('tenant.knowledge.strategy.label') }}
+              {{ t(`tenant.knowledge.strategy.${strategyKey(d.format)}`) }}
+              <template v-if="d.embedding_model">
+                · {{ t('tenant.knowledge.strategy.embedded') }}
+              </template>
+            </div>
             <div
               v-if="d.status === 'failed' && d.error"
               class="text-caption q-mt-xs"
@@ -260,6 +279,14 @@ async function reindexAll() {
             </div>
           </div>
           <div class="row no-wrap q-gutter-x-xs">
+            <IgButton
+              v-if="client.chunks && d.status === 'ready'"
+              variant="secondary"
+              size="sm"
+              :icon="inside.has(d.id) ? 'expand_less' : 'view_agenda'"
+              :label="t('tenant.knowledge.chunksList.show')"
+              @click="toggleInside(d.id)"
+            />
             <IgButton
               v-if="d.status === 'failed'"
               variant="secondary"
@@ -277,6 +304,11 @@ async function reindexAll() {
             />
           </div>
         </div>
+        <KnowledgeChunks
+          v-if="client.chunks && inside.has(d.id)"
+          :client="client"
+          :document-id="d.id"
+        />
       </div>
     </div>
 

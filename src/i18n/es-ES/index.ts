@@ -202,6 +202,40 @@ export default {
       empty: 'Aún no hay documentos',
       emptyHint:
         'Sube tu menú, tus precios o tus políticas para que el asistente responda con ellos.',
+      strategy: {
+        label: 'Cómo se partió:',
+        plain: 'por párrafos y frases (texto corrido)',
+        markdown: 'por títulos, con la ruta de títulos en cada fragmento',
+        table: 'por grupos de filas de cada hoja',
+        paged: 'por página',
+        embedded: 'indexado por significado y por palabras',
+      },
+      chunksList: {
+        show: 'Fragmentos',
+        hint: 'Así quedó partido el documento. Cada fragmento es lo que el asistente puede encontrar y leer.',
+        none: 'Este documento no tiene fragmentos.',
+        chars: 'caracteres',
+        embedded: 'por significado y palabras',
+        keywordOnly: 'solo por palabras',
+        more: 'Ver completo',
+        less: 'Ver menos',
+      },
+      inspect: {
+        title: 'Probar una búsqueda',
+        intro:
+          'Escribe una pregunta como la haría un cliente. Verás qué fragmentos encuentra el asistente, en qué orden y por qué.',
+        query: 'Pregunta',
+        limit: 'Cuántos',
+        run: 'Buscar',
+        none: 'No se encontró nada para "{q}".',
+        keywordsOnly:
+          'Esta búsqueda fue solo por palabras: el servicio de significado no respondió o los documentos se indexaron con otro modelo.',
+        scoreHint:
+          'El puntaje ordena los resultados de esta búsqueda; no se compara con el de otra. Cada ranking dice en qué lugar puso el fragmento (— si no lo encontró).',
+        score: 'Puntaje',
+        byMeaning: 'Significado',
+        byKeywords: 'Palabras',
+      },
     },
     credits: {
       title: 'Créditos',
@@ -822,7 +856,7 @@ export default {
         credits: 'Créditos',
         mail: 'Correo',
         connectors: 'Conectores',
-        knowledge: 'Conocimiento',
+        knowledge: 'Conocimiento (RAG)',
         automations: 'Automatizaciones',
         privacy: 'Privacidad',
       },
