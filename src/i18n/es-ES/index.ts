@@ -630,6 +630,8 @@ export default {
           skipped: 'No se pudieron importar ({n})',
           add: 'Agregar {n} operaciones',
           added: 'Se agregaron {n} operaciones. Revisa el riesgo de cada una.',
+          simplified:
+            'Los argumentos solo admiten una parte de JSON Schema. Se dejaron abiertas estas palabras del archivo: {words}. El asistente podría enviar valores que el sistema rechace.',
           review:
             'Lo que no es GET queda como escritura y pide confirmación de una persona; cambia el riesgo si solo consulta.',
           errors: {

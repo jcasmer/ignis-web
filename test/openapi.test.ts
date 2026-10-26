@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { toConnectorInput, emptyConnector } from '@/utils/connectors';
-import { isUntouched, operationName, parseOpenApi } from '@/utils/openapi';
+import { isUntouched, operationName, parseOpenApi, sanitizeSchema } from '@/utils/openapi';
 
 const SPEC = `
 openapi: 3.0.3
@@ -166,6 +166,76 @@ paths:
     expect(parseOpenApi(`openapi: 3.0.0\n${lines.join('\n')}`)).toEqual({
       ok: false,
       error: 'syntax',
+    });
+  });
+});
+
+describe('sanitizeSchema', () => {
+  const clean = (schema: unknown) => {
+    const dropped = new Set<string>();
+    return { out: sanitizeSchema(schema, dropped), dropped: [...dropped].sort() };
+  };
+
+  it('keeps what the API understands and reports what it leaves out', () => {
+    const { out, dropped } = clean({
+      type: 'object',
+      required: ['a', 'ghost'],
+      additionalProperties: { type: 'string' },
+      properties: {
+        a: { type: 'integer', minimum: 1, exclusiveMinimum: true, multipleOf: 2, readOnly: true },
+        b: { oneOf: [{ type: 'string' }, { type: 'integer' }] },
+        c: {
+          type: 'array',
+          items: { type: 'string', enum: ['x', 'y'], format: 'date' },
+          uniqueItems: true,
+        },
+      },
+    });
+    expect(out).toEqual({
+      type: 'object',
+      // `ghost` is not a property: the API would refuse the schema.
+      required: ['a'],
+      properties: {
+        a: { type: 'integer', minimum: 1 },
+        b: {},
+        c: { type: 'array', items: { type: 'string', enum: ['x', 'y'], format: 'date' } },
+      },
+    });
+    expect(dropped).toEqual([
+      'additionalProperties',
+      'exclusiveMinimum',
+      'multipleOf',
+      'oneOf',
+      'uniqueItems',
+    ]);
+  });
+
+  it('merges allOf into one object', () => {
+    const { out } = clean({
+      allOf: [
+        { type: 'object', required: ['id'], properties: { id: { type: 'string' } } },
+        { properties: { name: { type: 'string' } }, required: ['name'] },
+      ],
+    });
+    expect(out).toEqual({
+      type: 'object',
+      required: ['id', 'name'],
+      properties: { id: { type: 'string' }, name: { type: 'string' } },
+    });
+  });
+
+  it('leaves open what is too deep, and what is not a schema', () => {
+    let deep: Record<string, unknown> = { type: 'string' };
+    for (let i = 0; i < 15; i++) deep = { type: 'object', properties: { x: deep } };
+    expect(JSON.stringify(clean(deep).out)).not.toContain('"string"');
+    expect(clean('text').out).toEqual({});
+    expect(clean({ type: 'file' }).dropped).toEqual(['type']);
+  });
+
+  it('only allows a boolean additionalProperties', () => {
+    expect(clean({ type: 'object', additionalProperties: false }).out).toEqual({
+      type: 'object',
+      additionalProperties: false,
     });
   });
 });

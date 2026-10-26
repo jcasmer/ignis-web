@@ -165,6 +165,13 @@ function add() {
               · {{ t(`admin.tenant.connectors.import.reasons.${s.reason}`) }}
             </div>
           </q-expansion-item>
+          <IgAlert v-if="result.simplified.length" tone="warn">
+            {{
+              t('admin.tenant.connectors.import.simplified', {
+                words: result.simplified.join(', '),
+              })
+            }}
+          </IgAlert>
           <div class="text-caption ig-muted">{{ t('admin.tenant.connectors.import.review') }}</div>
         </template>
       </q-card-section>

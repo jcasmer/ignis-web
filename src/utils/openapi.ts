@@ -11,16 +11,6 @@ const MAX_PARAMS_BYTES = 16 << 10;
 const MAX_REF_DEPTH = 8;
 const METHODS: OperationMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 const SEGMENT = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
-// What makes no sense in the arguments of a tool: examples and OpenAPI-only keywords.
-const DROPPED = new Set([
-  'example',
-  'examples',
-  'xml',
-  'externalDocs',
-  'nullable',
-  'discriminator',
-  'deprecated',
-]);
 
 type Json = Record<string, unknown>;
 const isObject = (v: unknown): v is Json =>
@@ -50,6 +40,8 @@ export type OpenApiResult =
       baseUrl: string | null;
       operations: ImportedOperation[];
       skipped: SkippedOperation[];
+      /** Keywords of the file the API does not understand, left out of the arguments. */
+      simplified: string[];
     }
   | { ok: false; error: OpenApiError };
 
@@ -77,8 +69,95 @@ function inline(node: unknown, root: Json, depth = 0, chain: string[] = []): unk
     return inline(lookup(root, node.$ref) ?? {}, root, depth + 1, [...chain, node.$ref]);
   }
   const out: Json = {};
-  for (const [k, v] of Object.entries(node)) {
-    if (!DROPPED.has(k)) out[k] = inline(v, root, depth, chain);
+  for (const [k, v] of Object.entries(node)) out[k] = inline(v, root, depth, chain);
+  return out;
+}
+
+// --- the schema the API accepts ------------------------------------------------------
+
+// The API checks the arguments of a tool against a subset of JSON Schema and refuses a
+// schema that uses anything else when it is saved. What a file uses outside it is left
+// out here, and the keywords that were left out are reported.
+const TYPES = ['object', 'array', 'string', 'integer', 'number', 'boolean', 'null'];
+const MAX_SCHEMA_DEPTH = 10;
+const NUMBERS = ['minimum', 'maximum'];
+const COUNTS = ['minLength', 'maxLength', 'minItems', 'maxItems'];
+const KEEP = ['title', 'description', 'default', 'format'];
+
+const isCount = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0;
+
+/** Brings the properties and required fields of every allOf part into one schema. */
+function mergeAllOf(node: Json, dropped: Set<string>): Json {
+  if (!Array.isArray(node.allOf)) return node;
+  const merged: Json = { ...node };
+  delete merged.allOf;
+  const properties: Json = isObject(merged.properties) ? { ...merged.properties } : {};
+  const required = new Set<unknown>(Array.isArray(merged.required) ? merged.required : []);
+  for (const part of node.allOf) {
+    if (!isObject(part)) continue;
+    const p = mergeAllOf(part, dropped);
+    if (isObject(p.properties)) Object.assign(properties, p.properties);
+    if (Array.isArray(p.required)) for (const r of p.required) required.add(r);
+    if (merged.type === undefined && p.type !== undefined) merged.type = p.type;
+  }
+  if (Object.keys(properties).length) merged.properties = properties;
+  if (required.size) merged.required = [...required];
+  return merged;
+}
+
+/** A schema with only what the API understands; `dropped` collects what was left out. */
+export function sanitizeSchema(input: unknown, dropped: Set<string>, depth = 0): Json {
+  if (!isObject(input) || depth > MAX_SCHEMA_DEPTH) return {};
+  const node = mergeAllOf(input, dropped);
+  const out: Json = {};
+  for (const [key, value] of Object.entries(node)) {
+    if (key === 'type') {
+      const list = Array.isArray(value) ? value : [value];
+      if (list.length && list.every((t) => typeof t === 'string' && TYPES.includes(t)))
+        out.type = value;
+      else dropped.add(key);
+    } else if (key === 'properties' && isObject(value)) {
+      const props: Json = {};
+      for (const [name, child] of Object.entries(value)) {
+        props[name] = sanitizeSchema(child, dropped, depth + 1);
+      }
+      out.properties = props;
+    } else if (key === 'items' && isObject(value)) {
+      out.items = sanitizeSchema(value, dropped, depth + 1);
+    } else if (key === 'additionalProperties' && typeof value === 'boolean') {
+      out.additionalProperties = value;
+    } else if (key === 'enum' && Array.isArray(value) && value.length <= 256) {
+      out.enum = value;
+    } else if (key === 'pattern' && typeof value === 'string' && value.length <= 256) {
+      out.pattern = value;
+    } else if (NUMBERS.includes(key) && typeof value === 'number') {
+      out[key] = value;
+    } else if (COUNTS.includes(key) && isCount(value)) {
+      out[key] = value;
+    } else if (KEEP.includes(key)) {
+      out[key] = value;
+    } else if (
+      key !== 'required' &&
+      ![
+        'example',
+        'examples',
+        'xml',
+        'externalDocs',
+        'nullable',
+        'deprecated',
+        'discriminator',
+        'readOnly',
+        'writeOnly',
+      ].includes(key)
+    ) {
+      dropped.add(key);
+    }
+  }
+  // A required field must be one of the declared properties, or the API refuses the schema.
+  if (Array.isArray(node.required) && isObject(out.properties)) {
+    const props = out.properties;
+    const required = node.required.filter((r): r is string => typeof r === 'string' && r in props);
+    if (required.length) out.required = required;
   }
   return out;
 }
@@ -136,6 +215,7 @@ function buildOperation(
   shared: unknown[],
   root: Json,
   name: string,
+  dropped: Set<string>,
 ): { draft: OperationDraft } | { reason: SkipReason } {
   if (!path.startsWith('/') || /[?#\\]/.test(path) || path.includes('..') || path.includes('//')) {
     return { reason: 'path' };
@@ -152,7 +232,7 @@ function buildOperation(
     if (!isObject(p) || typeof p.name !== 'string') continue;
     if (p.in === 'header' || p.in === 'cookie') return { reason: 'headerParam' };
     if (!SEGMENT.test(p.name)) return { reason: 'segment' };
-    const schema = isObject(p.schema) ? { ...p.schema } : {};
+    const schema = sanitizeSchema(p.schema, dropped);
     if (typeof p.description === 'string' && !('description' in schema)) {
       schema.description = p.description.trim().slice(0, 300);
     }
@@ -161,13 +241,14 @@ function buildOperation(
   }
 
   const body = bodySchema(op, root);
+  const bodyClean = body ? sanitizeSchema(body, dropped) : body;
   if (body === null) return { reason: 'body' };
-  if (body) {
-    const bodyProps = isObject(body.properties) ? body.properties : {};
+  if (bodyClean) {
+    const bodyProps = isObject(bodyClean.properties) ? bodyClean.properties : {};
     for (const key of Object.keys(bodyProps)) if (key in properties) return { reason: 'collision' };
     Object.assign(properties, bodyProps);
-    if (Array.isArray(body.required)) {
-      for (const r of body.required) if (typeof r === 'string') required.add(r);
+    if (Array.isArray(bodyClean.required)) {
+      for (const r of bodyClean.required) if (typeof r === 'string') required.add(r);
     }
   }
   // Every {segment} of the path must be a required argument.
@@ -239,6 +320,7 @@ export function parseOpenApi(text: string): OpenApiResult {
   const operations: ImportedOperation[] = [];
   const skipped: SkippedOperation[] = [];
   const taken = new Set<string>();
+  const dropped = new Set<string>();
   for (const [path, item] of Object.entries(paths)) {
     if (!isObject(item)) continue;
     const shared = Array.isArray(item.parameters) ? item.parameters : [];
@@ -257,6 +339,7 @@ export function parseOpenApi(text: string): OpenApiResult {
         shared,
         spec,
         unique(operationName(op.operationId, method, path), taken),
+        dropped,
       );
       if ('reason' in built) skipped.push({ source, reason: built.reason });
       else operations.push({ source, draft: built.draft });
@@ -270,6 +353,7 @@ export function parseOpenApi(text: string): OpenApiResult {
     baseUrl: firstServer(spec),
     operations,
     skipped,
+    simplified: [...dropped].sort(),
   };
 }
 
