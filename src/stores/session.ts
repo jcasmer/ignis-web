@@ -12,6 +12,7 @@ import {
   type TenantProfile,
 } from '@/api/auth';
 import { ApiError, createHttp } from '@/api/http';
+import { opsApi } from '@/api/ops';
 import { tenantApi } from '@/api/tenant';
 import { API_URL } from '@/config';
 
@@ -56,6 +57,7 @@ export const useSessionStore = defineStore('session', () => {
   });
   const api = authApi(http);
   const data = tenantApi(http);
+  const ops = opsApi(http);
 
   function rememberArea(a: Area | null) {
     try {
@@ -193,6 +195,7 @@ export const useSessionStore = defineStore('session', () => {
     recoveryCodes,
     api,
     data,
+    ops,
     http,
     restore,
     signIn,

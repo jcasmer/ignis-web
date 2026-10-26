@@ -28,7 +28,10 @@ interface NavItem {
 // Grows with each area of the console; every entry here is a real page.
 const nav = computed<NavItem[]>(() =>
   area.value === 'ops'
-    ? [{ to: '/admin', icon: 'space_dashboard', label: t('admin.nav.overview') }]
+    ? [
+        { to: '/admin', icon: 'space_dashboard', label: t('admin.nav.overview') },
+        { to: '/admin/tenants', icon: 'domain', label: t('admin.nav.tenants') },
+      ]
     : [
         { to: '/app', icon: 'space_dashboard', label: t('tenant.nav.overview') },
         ...(atLeast(session.tenant?.role, 'agent')
@@ -71,6 +74,12 @@ const moreOpen = ref(false);
 const moreActive = computed(() => mobileMore.value.some((i) => i.to === route.path));
 
 const initial = computed(() => (who.value.name || 'I').charAt(0).toUpperCase());
+
+// A section stays marked while one of its pages is open (a tenant's detail is part of Clientes).
+const isActive = (to: string) =>
+  to === '/app' || to === '/admin'
+    ? route.path === to
+    : route.path === to || route.path.startsWith(`${to}/`);
 
 async function signOut() {
   const target = loginOf[area.value];
@@ -134,7 +143,11 @@ async function signOut() {
       <nav class="ig-nav" :aria-label="t('common.menu')">
         <template v-for="item in nav" :key="item.to">
           <div v-if="item.section" class="ig-nav__label ig-eyebrow">{{ item.section }}</div>
-          <router-link :to="item.to" class="ig-nav__item">
+          <router-link
+            :to="item.to"
+            class="ig-nav__item"
+            :class="{ 'router-link-exact-active': isActive(item.to) }"
+          >
             <q-icon :name="item.icon" />
             <span>{{ item.label }}</span>
           </router-link>
@@ -158,6 +171,7 @@ async function signOut() {
           :key="item.to"
           :to="item.to"
           class="ig-bottom-nav__item"
+          :class="{ 'router-link-exact-active': isActive(item.to) }"
         >
           <q-icon :name="item.icon" />
           <span>{{ item.label }}</span>

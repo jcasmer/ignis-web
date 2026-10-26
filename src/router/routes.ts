@@ -102,6 +102,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/admin/OverviewPage.vue'),
         meta: { area: 'ops' },
       },
+      {
+        path: 'tenants',
+        component: () => import('@/pages/admin/TenantsPage.vue'),
+        meta: { area: 'ops' },
+      },
+      {
+        path: 'tenants/:id',
+        component: () => import('@/pages/admin/TenantPage.vue'),
+        meta: { area: 'ops' },
+      },
     ],
   },
   { path: '/:catchAll(.*)*', component: () => import('@/pages/ErrorNotFound.vue') },
