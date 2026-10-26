@@ -2,11 +2,14 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { modelName, providerLabel, providersOf } from '@/utils/models';
+import type { ModelProvider } from '@/api/automations';
+import { modelName, providerOptions as optionsOf } from '@/utils/models';
 
 const props = defineProps<{
   /** The models that can be chosen, as "provider:model". */
   models: string[];
+  /** Every provider of the platform and whether it can be chosen; without it, those of the models. */
+  providers?: ModelProvider[];
   /** What choosing nothing means, e.g. "the model of the plan". */
   defaultLabel: string;
   label?: string;
@@ -20,11 +23,14 @@ const all = computed(() =>
     ? [...props.models, value.value]
     : props.models,
 );
-const providers = computed(() => providersOf(all.value));
 const provider = computed(() => value.value.split(':', 1)[0] ?? '');
 const providerOptions = computed(() => [
-  { value: '', label: props.defaultLabel },
-  ...providers.value.map((p) => ({ value: p, label: providerLabel(p) })),
+  { value: '', label: props.defaultLabel, disable: false },
+  ...optionsOf(props.providers ?? [], all.value, provider.value, {
+    available: '',
+    not_configured: t('models.notConfigured'),
+    no_price: t('models.noPrice'),
+  }),
 ]);
 const modelOptions = computed(() =>
   all.value

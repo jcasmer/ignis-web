@@ -519,6 +519,7 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
             <ModelPicker
               v-model="llmModel"
               :models="modelRefs"
+              :providers="catalog?.providers ?? []"
               :default-label="t('admin.tenant.plan.modelProfile')"
             />
           </div>

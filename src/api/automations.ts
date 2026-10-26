@@ -69,6 +69,12 @@ export interface AutomationAction {
   when?: AutomationGuard;
 }
 
+/** Whether an AI provider can be chosen, and if not, why. */
+export interface ModelProvider {
+  id: string;
+  status: 'available' | 'not_configured' | 'no_price';
+}
+
 /** What the API takes to create or replace a rule. */
 export interface AutomationInput {
   name: string;
@@ -138,7 +144,7 @@ export interface AutomationsClient {
   runs(p?: { rule?: string; limit?: number }): Promise<{ items: AutomationRun[] }>;
   test(rule: AutomationInput, event: AutomationSampleEvent): Promise<AutomationTrace>;
   /** The models a step may ask for, as "provider:model". */
-  models(): Promise<{ items: string[] }>;
+  models(): Promise<{ items: string[]; providers: ModelProvider[] }>;
 }
 
 function query(params: Record<string, string | number | undefined>): string {

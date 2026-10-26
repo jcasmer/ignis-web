@@ -3,6 +3,7 @@ import ModelPicker from '@/components/ModelPicker.vue';
 import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import type { ModelProvider } from '@/api/automations';
 import type { Connector } from '@/api/tenant';
 import ConditionRows from '@/components/ConditionRows.vue';
 import IgAlert from '@/components/IgAlert.vue';
@@ -23,6 +24,7 @@ const props = defineProps<{
   trigger: RuleDraft['trigger'];
   connectors: Connector[];
   models: string[];
+  providers: ModelProvider[];
   /** What is wrong with this step, from the validation of the form. */
   problem?: string | undefined;
   first: boolean;
@@ -440,6 +442,7 @@ const DAYS = [1, 3, 7, 14, 30, 60, 90];
           v-model="step.model"
           class="q-mt-xs"
           :models="models"
+          :providers="providers"
           :default-label="t('tenant.automations.modelDefault')"
         />
         <div class="row q-col-gutter-sm q-mt-xs">

@@ -98,6 +98,8 @@ export default {
     provider: 'Proveedor de IA',
     model: 'Modelo',
     pickProviderFirst: 'Elige primero el proveedor.',
+    notConfigured: 'falta su clave en el servidor',
+    noPrice: 'falta un precio verificado',
   },
   tenant: {
     overview: {
