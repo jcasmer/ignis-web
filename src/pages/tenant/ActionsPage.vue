@@ -99,7 +99,7 @@ onMounted(load);
             <div class="row items-center q-gutter-x-sm q-mb-sm">
               <span
                 class="ig-pill"
-                :class="a.risk === 'external' ? 'ig-pill--warn' : 'ig-pill--amber'"
+                :class="a.risk === 'external' ? 'ig-pill--warn' : 'ig-pill--brand'"
               >
                 <q-icon :name="a.risk === 'external' ? 'north_east' : 'edit'" size="13px" />
                 {{ t(`tenant.actions.risk.${a.risk}`) }}

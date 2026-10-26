@@ -46,15 +46,15 @@ const geometry = computed(() => {
   >
     <defs>
       <linearGradient :id="`sp-${id}`" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#f2a900" stop-opacity="0.32" />
-        <stop offset="1" stop-color="#f2a900" stop-opacity="0" />
+        <stop offset="0" style="stop-color: var(--ig-brand-500)" stop-opacity="0.34" />
+        <stop offset="1" style="stop-color: var(--ig-brand-500)" stop-opacity="0" />
       </linearGradient>
     </defs>
     <path :d="geometry.area" :fill="`url(#sp-${id})`" />
     <path
       :d="geometry.line"
       fill="none"
-      stroke="#f2a900"
+      stroke="var(--ig-brand-500)"
       stroke-width="2"
       stroke-linecap="round"
       vector-effect="non-scaling-stroke"

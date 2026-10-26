@@ -25,7 +25,7 @@ const session = useSessionStore();
           <div>
             <div class="ig-eyebrow">{{ t('admin.overview.hello') }}</div>
             <div class="text-h6">{{ session.operator?.name }}</div>
-            <span class="ig-pill ig-pill--amber">
+            <span class="ig-pill ig-pill--brand">
               {{ session.operator ? t(`admin.roles.${session.operator.role}`) : '' }}
             </span>
           </div>

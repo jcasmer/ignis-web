@@ -130,7 +130,7 @@ const chartOption = computed(() => {
         const i = items[0]?.dataIndex ?? 0;
         const lines = [
           `<b>${labels[i] ?? ''}</b>`,
-          `<span style="color:${chartColors.amber}">●</span> ${t('tenant.reports.current')}: <b>${fmt(metric.value, now[i] ?? 0)}</b>`,
+          `<span style="color:${chartColors.brand}">●</span> ${t('tenant.reports.current')}: <b>${fmt(metric.value, now[i] ?? 0)}</b>`,
         ];
         const pp = prev?.series[i];
         if (pp) {
@@ -144,7 +144,7 @@ const chartOption = computed(() => {
     xAxis: { ...axisStyle.xAxis, boundaryGap: false, data: labels },
     yAxis: { ...axisStyle.yAxis, minInterval: money ? undefined : 1 },
     series: [
-      lineSeries(t('tenant.reports.current'), now.map(show), chartColors.amber, { area: true }),
+      lineSeries(t('tenant.reports.current'), now.map(show), chartColors.brand, { area: true }),
       lineSeries(t('tenant.reports.previous'), before.map(show), chartColors.stone, {
         dashed: true,
       }),
@@ -209,8 +209,8 @@ function download() {
                 range
                 minimal
                 first-day-of-week="1"
-                color="accent"
-                text-color="dark"
+                color="primary"
+                text-color="white"
                 @update:model-value="pick"
               >
                 <div class="row justify-end">

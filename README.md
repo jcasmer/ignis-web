@@ -36,7 +36,7 @@ En producción define `VITE_API_URL` con el origen de la API (por ejemplo `https
 - El QR del segundo factor se dibuja en el navegador; el secreto no sale a ningún servicio externo.
 - Los mensajes de error se muestran en español y nunca el texto crudo del servidor.
 - `public/_headers` trae la política de seguridad de contenido (CSP) y demás cabeceras para el hosting estático; ajusta `connect-src` al origen real de la API.
-- Rojo solo para errores: la paleta de marca es ámbar.
+- Rojo solo para errores: la paleta de marca es un teal profundo con arena, sobre neutros fríos (modo oscuro azulado).
 
 ## Estructura
 

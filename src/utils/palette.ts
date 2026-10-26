@@ -1,19 +1,18 @@
 /**
- * Colours of the charts: amber first, then hues that stay apart from it and from
- * each other. No red, which is kept for errors.
+ * Colours of the charts: the brand teal first, then hues that stay apart from it
+ * and from each other. No red, which is kept for errors.
  */
 export const chartColors = {
-  amber: '#f2a900',
-  umber: '#8a5d00',
-  teal: '#2f8f83',
-  blue: '#3b6fb6',
-  sand: '#d9c9a3',
-  stone: '#a39270',
-  plum: '#7b5ea7',
+  brand: '#0d8f83',
+  sand: '#c9a86a',
+  blue: '#4f7fd1',
+  plum: '#8a6bbf',
+  slate: '#7c8aa5',
+  stone: '#9aa8b0',
 } as const;
 
 export const reasonColors: Record<string, string> = {
-  contact_request: chartColors.amber,
-  assistant: chartColors.teal,
-  failures: chartColors.umber,
+  contact_request: chartColors.brand,
+  assistant: chartColors.sand,
+  failures: chartColors.blue,
 };

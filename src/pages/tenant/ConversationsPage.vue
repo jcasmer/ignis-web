@@ -165,7 +165,7 @@ onMounted(() => {
                   class="ig-muted q-mr-xs"
                 />
                 <span class="ellipsis text-body2 ig-muted col">{{ c.last_message }}</span>
-                <span v-if="c.handoff_active" class="ig-pill ig-pill--amber q-ml-sm">
+                <span v-if="c.handoff_active" class="ig-pill ig-pill--brand q-ml-sm">
                   <q-icon name="support_agent" size="13px" />
                 </span>
               </span>

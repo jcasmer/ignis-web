@@ -56,10 +56,10 @@
     &.router-link-exact-active {
       color: var(--ig-text);
       font-weight: 650;
-      background: linear-gradient(90deg, var(--ig-amber-100), transparent 130%);
+      background: linear-gradient(90deg, var(--ig-brand-100), transparent 130%);
 
       .q-icon {
-        color: var(--ig-amber-600);
+        color: var(--ig-brand-600);
       }
 
       &::before {
@@ -70,7 +70,7 @@
         bottom: 9px;
         width: 4px;
         border-radius: 0 4px 4px 0;
-        background: var(--ig-amber-500);
+        background: var(--ig-brand-500);
       }
     }
   }
@@ -84,13 +84,13 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--ig-amber-300), var(--ig-amber-500));
-  color: var(--ig-ink);
+  background: linear-gradient(135deg, var(--ig-brand-400), var(--ig-brand-700));
+  color: var(--ig-on-brand);
   font-weight: 700;
   font-size: 0.9rem;
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 55%),
-    0 2px 8px -2px rgb(242 169 0 / 60%);
+    0 2px 8px -2px rgb(var(--ig-brand-rgb) / 60%);
 
   &--lg {
     width: 44px;
@@ -144,7 +144,7 @@
       color: var(--ig-text);
 
       .q-icon {
-        color: var(--ig-amber-600);
+        color: var(--ig-brand-600);
         transform: translateY(-1px);
       }
     }

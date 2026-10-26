@@ -12,7 +12,7 @@ const props = defineProps<{
   format?: 'number' | 'usd' | undefined;
   /** Fraction against the previous period; null when there is none. */
   delta?: number | null;
-  /** True when a rise is bad news (it is shown in amber, never red). */
+  /** True when a rise is bad news (it is shown in orange, never red). */
   lowerIsBetter?: boolean | undefined;
   icon?: string;
   spark?: number[];

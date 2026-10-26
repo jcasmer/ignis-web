@@ -134,13 +134,13 @@ const activityOption = computed(() => ({
     lineSeries(
       t('tenant.overview.charts.received'),
       chart.value?.values.messages_in ?? [],
-      chartColors.amber,
+      chartColors.brand,
       { area: true },
     ),
     lineSeries(
       t('tenant.overview.charts.sent'),
       chart.value?.values.messages_out ?? [],
-      chartColors.teal,
+      chartColors.sand,
     ),
   ],
 }));
@@ -154,7 +154,7 @@ const conversationsOption = computed(() => ({
     barSeries(
       t('tenant.overview.charts.conversations'),
       chart.value?.values.conversations_active ?? [],
-      chartColors.amber,
+      chartColors.brand,
     ),
   ],
 }));

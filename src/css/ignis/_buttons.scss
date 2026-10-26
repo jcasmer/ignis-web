@@ -5,7 +5,7 @@
   padding: 0 20px;
   border-radius: var(--ig-r-sm);
   font-family: var(--ig-font);
-  font-size: 0.925rem;
+  font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: -0.005em;
   text-transform: none;
@@ -39,27 +39,27 @@
   }
 }
 
-// Primary: amber with ink text, a lit top edge and a warm glow.
+// Primary: the brand teal with white text, a lit top edge and a soft glow.
 .q-btn.ig-btn--primary {
-  color: var(--ig-ink);
+  color: var(--ig-on-brand);
   background: linear-gradient(
     180deg,
-    var(--ig-amber-200) 0%,
-    var(--ig-amber-300) 38%,
-    var(--ig-amber-500) 100%
+    var(--ig-brand-400) 0%,
+    var(--ig-brand-500) 45%,
+    var(--ig-brand-700) 100%
   );
-  border: 1px solid rgb(154 103 0 / 40%);
+  border: 1px solid rgb(var(--ig-brand-deep-rgb) / 40%);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 60%),
-    0 1px 0 rgb(154 103 0 / 25%),
+    0 1px 0 rgb(var(--ig-brand-deep-rgb) / 25%),
     var(--ig-glow);
 
   &:not(.disabled):hover {
     transform: translateY(-1px);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 70%),
-      0 1px 0 rgb(154 103 0 / 30%),
-      0 12px 28px -8px rgb(242 169 0 / 65%);
+      0 1px 0 rgb(var(--ig-brand-deep-rgb) / 30%),
+      0 12px 28px -8px rgb(var(--ig-brand-rgb) / 65%);
     filter: saturate(1.08);
   }
 }
@@ -73,7 +73,7 @@
 
   &:not(.disabled):hover {
     background: var(--ig-surface-2);
-    border-color: var(--ig-amber-500);
+    border-color: var(--ig-brand-500);
   }
 }
 

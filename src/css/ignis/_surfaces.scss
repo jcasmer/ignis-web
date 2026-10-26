@@ -39,10 +39,10 @@
   color: var(--ig-faint);
 }
 
-// A selected row: a quiet surface and an amber edge, in both themes.
+// A selected row: a quiet surface and a brand-coloured edge, in both themes.
 .ig-selected {
   background: var(--ig-surface-2);
-  box-shadow: inset 3px 0 0 var(--ig-amber-500);
+  box-shadow: inset 3px 0 0 var(--ig-brand-500);
 }
 
 // Loading placeholders in the warm palette instead of Quasar's grey.
@@ -51,7 +51,12 @@
   border-radius: var(--ig-r-sm);
 
   &::after {
-    background: linear-gradient(90deg, transparent, rgb(242 169 0 / 12%), transparent) !important;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--ig-brand-rgb) / 12%),
+      transparent
+    ) !important;
   }
 }
 
@@ -70,8 +75,8 @@
     width: 56px;
     height: 56px;
     border-radius: 18px;
-    background: var(--ig-amber-100);
-    color: var(--ig-amber-700);
+    background: var(--ig-brand-100);
+    color: var(--ig-brand-700);
   }
 }
 

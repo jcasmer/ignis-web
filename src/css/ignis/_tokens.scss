@@ -1,35 +1,42 @@
 // The tokens of the Ignis design system. Components read these and never a raw
 // colour, so light and dark, and any later rebranding, change in one place.
 :root {
-  // Amber scale: the only brand hue. Red is not part of it.
-  --ig-amber-50: #fff8e6;
-  --ig-amber-100: #ffefc2;
-  --ig-amber-200: #ffe08a;
-  --ig-amber-300: #ffd166;
-  --ig-amber-500: #f2a900;
-  --ig-amber-600: #d68f00;
-  --ig-amber-700: #9a6700;
-  --ig-ink: #1b1a17;
+  // Brand scale: deep teal. It is the only brand hue; red is kept for errors.
+  --ig-brand-50: #effaf8;
+  --ig-brand-100: #d6f2ee;
+  --ig-brand-200: #a9e4dc;
+  --ig-brand-300: #5fd1c4;
+  --ig-brand-400: #22b5a6;
+  --ig-brand-500: #0d8f83;
+  --ig-brand-600: #0b7a70;
+  --ig-brand-700: #0a645c;
+  --ig-brand-rgb: 13 143 131;
+  --ig-brand-deep-rgb: 10 100 92;
+  --ig-on-brand: #ffffff;
+  --ig-ink: #0c1a19;
+
+  // Sand: the warm secondary, for a second series or a quiet highlight.
+  --ig-sand: #c9a86a;
 
   // Surfaces, from the page up.
-  --ig-page: #f6f1e8;
+  --ig-page: #f2f6f6;
   --ig-surface: #ffffff;
-  --ig-surface-2: #f3ede1;
-  --ig-surface-3: #ebe3d3;
-  --ig-line: #e8dfcf;
-  --ig-line-strong: #d6c9b0;
+  --ig-surface-2: #eaf1f0;
+  --ig-surface-3: #dfe9e7;
+  --ig-line: #dbe6e4;
+  --ig-line-strong: #c3d3d0;
 
   // Text.
-  --ig-text: #1b1a17;
-  --ig-muted: #6b6558;
-  --ig-faint: #968e7d;
-  --ig-link: #8a5d00;
+  --ig-text: #0c1a19;
+  --ig-muted: #52706c;
+  --ig-faint: #7f9692;
+  --ig-link: #0a645c;
 
   // Status tints, for pills and alerts. Error is the only red in the product.
-  --ig-ok: #2e7d5b;
-  --ig-ok-bg: rgb(46 125 91 / 12%);
-  --ig-warn: #9a5b00;
-  --ig-warn-bg: rgb(242 169 0 / 16%);
+  --ig-ok: #1f7a55;
+  --ig-ok-bg: rgb(31 122 85 / 12%);
+  --ig-warn: #a35200;
+  --ig-warn-bg: rgb(217 119 6 / 14%);
   --ig-error: #c62828;
   --ig-error-bg: rgb(198 40 40 / 9%);
   --ig-info: #3b6fb6;
@@ -39,11 +46,11 @@
   --ig-r-sm: 10px;
   --ig-r-md: 14px;
   --ig-r-lg: 20px;
-  --ig-shadow-1: 0 1px 2px rgb(60 40 0 / 6%), 0 1px 1px rgb(60 40 0 / 4%);
-  --ig-shadow-2: 0 1px 2px rgb(60 40 0 / 6%), 0 10px 30px -12px rgb(60 40 0 / 18%);
-  --ig-shadow-3: 0 2px 4px rgb(60 40 0 / 8%), 0 24px 48px -16px rgb(60 40 0 / 28%);
-  --ig-glow: 0 8px 24px -8px rgb(242 169 0 / 55%);
-  --ig-ring: 0 0 0 3px rgb(242 169 0 / 28%);
+  --ig-shadow-1: 0 1px 2px rgb(10 40 38 / 7%), 0 1px 1px rgb(10 40 38 / 4%);
+  --ig-shadow-2: 0 1px 2px rgb(10 40 38 / 6%), 0 10px 30px -12px rgb(10 40 38 / 20%);
+  --ig-shadow-3: 0 2px 4px rgb(10 40 38 / 8%), 0 24px 48px -16px rgb(10 40 38 / 30%);
+  --ig-glow: 0 8px 24px -8px rgb(var(--ig-brand-rgb) / 55%);
+  --ig-ring: 0 0 0 3px rgb(var(--ig-brand-rgb) / 28%);
 
   // Type.
   --ig-font: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -54,25 +61,28 @@
 }
 
 body.body--dark {
-  --ig-amber-50: #2b2310;
-  --ig-amber-100: #3a2e10;
-  --ig-amber-200: #5a4510;
-  --ig-page: #100e0a;
-  --ig-surface: #1a1712;
-  --ig-surface-2: #231f18;
-  --ig-surface-3: #2e281e;
-  --ig-line: #342e22;
-  --ig-line-strong: #4a4232;
+  --ig-brand-50: #0c1f21;
+  --ig-brand-100: #0f2b2d;
+  --ig-brand-200: #144346;
+  --ig-brand-rgb: 34 181 166;
+  --ig-sand: #d9bd85;
 
-  --ig-text: #f6f0e4;
-  --ig-muted: #b6ad9a;
-  --ig-faint: #857d6b;
-  --ig-link: #ffc94d;
+  --ig-page: #090e17;
+  --ig-surface: #101827;
+  --ig-surface-2: #172033;
+  --ig-surface-3: #202b42;
+  --ig-line: #232f47;
+  --ig-line-strong: #34425f;
+
+  --ig-text: #e8eef7;
+  --ig-muted: #9aa8c0;
+  --ig-faint: #6c7a94;
+  --ig-link: #4fd8c8;
 
   --ig-ok: #5fcf9f;
   --ig-ok-bg: rgb(95 207 159 / 14%);
-  --ig-warn: #ffc94d;
-  --ig-warn-bg: rgb(242 169 0 / 16%);
+  --ig-warn: #f4b058;
+  --ig-warn-bg: rgb(244 176 88 / 14%);
   --ig-error: #ff8a80;
   --ig-error-bg: rgb(255 138 128 / 12%);
   --ig-info: #8db6ee;
@@ -81,6 +91,6 @@ body.body--dark {
   --ig-shadow-1: 0 1px 2px rgb(0 0 0 / 45%);
   --ig-shadow-2: 0 1px 2px rgb(0 0 0 / 40%), 0 14px 34px -14px rgb(0 0 0 / 70%);
   --ig-shadow-3: 0 2px 4px rgb(0 0 0 / 50%), 0 28px 56px -18px rgb(0 0 0 / 85%);
-  --ig-glow: 0 8px 28px -8px rgb(242 169 0 / 45%);
-  --ig-ring: 0 0 0 3px rgb(242 169 0 / 32%);
+  --ig-glow: 0 8px 28px -8px rgb(var(--ig-brand-rgb) / 45%);
+  --ig-ring: 0 0 0 3px rgb(var(--ig-brand-rgb) / 38%);
 }
