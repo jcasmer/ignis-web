@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { refreshOnFocus } from '@/composables/refreshOnFocus';
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -28,6 +29,7 @@ async function load() {
   }
 }
 onMounted(load);
+refreshOnFocus(load);
 
 const when = (iso: string) =>
   new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' }).format(new Date(iso));

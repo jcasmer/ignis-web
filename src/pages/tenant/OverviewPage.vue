@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { refreshOnFocus } from '@/composables/refreshOnFocus';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -49,6 +50,7 @@ async function load() {
 }
 
 onMounted(load);
+refreshOnFocus(load);
 watch(days, load);
 
 const totals = computed(() => stats.value?.totals);

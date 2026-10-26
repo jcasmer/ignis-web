@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { refreshOnFocus } from '@/composables/refreshOnFocus';
 import { useQuasar } from 'quasar';
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -70,6 +71,7 @@ async function answer(a: PendingAction, approve: boolean) {
 }
 
 onMounted(load);
+refreshOnFocus(load);
 </script>
 
 <template>
