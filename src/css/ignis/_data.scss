@@ -21,8 +21,8 @@
     width: 34px;
     height: 34px;
     border-radius: 11px;
-    background: var(--ig-amber-100);
-    color: var(--ig-amber-700);
+    background: color-mix(in srgb, var(--kpi, var(--ig-brand-500)) 15%, transparent);
+    color: var(--kpi, var(--ig-brand-700));
 
     .q-icon {
       font-size: 1.15rem;
@@ -62,11 +62,7 @@
   }
 }
 
-body.body--dark .ig-kpi__icon {
-  color: var(--ig-amber-300);
-}
-
-// Change vs. the previous period: green for good, amber for worse, never red.
+// Change vs. the previous period: green for good, orange for worse, never red.
 .ig-delta {
   display: inline-flex;
   align-items: center;
@@ -161,7 +157,7 @@ body.body--dark .ig-kpi__icon {
 
   &[aria-current='true'] {
     background: var(--ig-surface-2);
-    box-shadow: inset 3px 0 0 var(--ig-amber-500);
+    box-shadow: inset 3px 0 0 var(--ig-brand-500);
   }
 }
 
@@ -181,10 +177,10 @@ body.body--dark .ig-kpi__icon {
   }
 
   &--out {
-    background: linear-gradient(180deg, var(--ig-amber-200), var(--ig-amber-300));
-    color: var(--ig-ink);
+    background: linear-gradient(180deg, var(--ig-brand-500), var(--ig-brand-700));
+    color: var(--ig-on-brand);
     border-bottom-right-radius: 6px;
-    box-shadow: 0 4px 14px -6px rgb(242 169 0 / 50%);
+    box-shadow: 0 4px 14px -6px rgb(var(--ig-brand-rgb) / 50%);
   }
 
   &__meta {
@@ -193,8 +189,4 @@ body.body--dark .ig-kpi__icon {
     font-weight: 600;
     opacity: 0.65;
   }
-}
-
-body.body--dark .ig-bubble--out {
-  background: linear-gradient(180deg, #f4b82e, #e0a000);
 }

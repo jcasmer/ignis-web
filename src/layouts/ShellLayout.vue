@@ -65,7 +65,7 @@ async function signOut() {
         <!-- The brand lives in the sidebar on a desktop; on a phone it is here. -->
         <div class="lt-md row items-center no-wrap">
           <IgnisMark :size="28" />
-          <span v-if="area === 'ops'" class="ig-pill ig-pill--amber q-ml-sm">admin</span>
+          <span v-if="area === 'ops'" class="ig-pill ig-pill--brand q-ml-sm">admin</span>
         </div>
         <q-space />
         <IgButton
@@ -108,7 +108,7 @@ async function signOut() {
     <q-drawer v-if="$q.screen.gt.sm" :model-value="true" persistent :width="248" class="ig-sidebar">
       <div class="ig-sidebar__brand">
         <IgnisMark :size="30" />
-        <span v-if="area === 'ops'" class="ig-pill ig-pill--amber q-ml-sm">admin</span>
+        <span v-if="area === 'ops'" class="ig-pill ig-pill--brand q-ml-sm">admin</span>
       </div>
       <nav class="ig-nav" :aria-label="t('common.menu')">
         <router-link v-for="item in nav" :key="item.to" :to="item.to" class="ig-nav__item">

@@ -12,9 +12,11 @@ const props = defineProps<{
   format?: 'number' | 'usd' | undefined;
   /** Fraction against the previous period; null when there is none. */
   delta?: number | null;
-  /** True when a rise is bad news (it is shown in amber, never red). */
+  /** True when a rise is bad news (it is shown in orange, never red). */
   lowerIsBetter?: boolean | undefined;
   icon?: string;
+  /** The colour of the metric, the same in every chart. */
+  color: string;
   spark?: number[];
   compareLabel: string;
   noCompareLabel: string;
@@ -38,7 +40,7 @@ const tone = computed(() => {
 </script>
 
 <template>
-  <div class="ig-card ig-kpi">
+  <div class="ig-card ig-kpi" :style="{ '--kpi': color }">
     <div class="ig-kpi__head">
       <div v-if="icon" class="ig-kpi__icon"><q-icon :name="icon" /></div>
       <div class="ig-kpi__label">{{ label }}</div>
@@ -57,7 +59,7 @@ const tone = computed(() => {
       <span v-else>{{ noCompareLabel }}</span>
     </div>
     <div v-if="spark && spark.length > 1" class="ig-kpi__spark">
-      <TrendLine :values="spark" :label="label" />
+      <TrendLine :values="spark" :label="label" :color="color" />
     </div>
   </div>
 </template>

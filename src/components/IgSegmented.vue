@@ -4,6 +4,8 @@ import { ref } from 'vue';
 export interface SegmentOption<V> {
   value: V;
   label: string;
+  /** A dot before the label, to tie the option to a colour used in a chart. */
+  color?: string;
 }
 
 const props = defineProps<{ options: SegmentOption<T>[]; label: string; block?: boolean }>();
@@ -40,6 +42,7 @@ function onKey(e: KeyboardEvent, index: number) {
       @click="model = o.value"
       @keydown="onKey($event, i)"
     >
+      <span v-if="o.color" class="ig-seg__dot" :style="{ background: o.color }" />
       {{ o.label }}
     </button>
   </div>

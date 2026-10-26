@@ -44,7 +44,7 @@ export const tooltipBox = {
   extraCssText:
     'border-radius:12px;box-shadow:0 12px 32px -8px rgb(0 0 0 / 35%);backdrop-filter:blur(8px)',
   borderWidth: 1,
-  axisPointer: { lineStyle: { color: chartColors.amber, width: 1, type: 'dashed' as const } },
+  axisPointer: { lineStyle: { color: chartColors.brand, width: 1, type: 'dashed' as const } },
 };
 
 export function lineSeries(

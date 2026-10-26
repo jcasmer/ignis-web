@@ -14,7 +14,7 @@ const { t } = useI18n();
           font-weight: 800;
           letter-spacing: -0.05em;
           line-height: 1;
-          color: var(--ig-amber-500);
+          color: var(--ig-brand-500);
         "
       >
         404
