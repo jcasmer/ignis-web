@@ -1,4 +1,5 @@
 import type { Http } from './http';
+import type { CreditPackage } from './tenant';
 
 export interface TenantListItem {
   id: string;
@@ -112,6 +113,34 @@ export interface GrantInput {
   expires_at?: string;
 }
 
+export interface Operator {
+  id: string;
+  email: string;
+  name: string;
+  role: 'super' | 'staff';
+  status: 'active' | 'disabled';
+  mfa_enabled: boolean;
+  created_at: string;
+}
+
+export interface MailInput {
+  business_name: string;
+  recipients: string[];
+}
+
+export interface PrivacySettings {
+  business_name: string;
+  notice_text: string;
+  policy_url: string;
+}
+
+export interface NewPackage {
+  name: string;
+  credit_micro: number;
+  price_minor: number;
+  currency: string;
+}
+
 function query(params: Record<string, string | number | undefined>): string {
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== '') q.set(k, String(v));
@@ -140,5 +169,23 @@ export function opsApi(http: Http) {
     billing: (p: { from?: string; to?: string } = {}) =>
       http.get<BillingSummary>(`/ops/billing/summary${query(p)}`),
     queue: () => http.get<QueueStats>('/ops/queue'),
+
+    packages: () => http.get<{ items: CreditPackage[] }>('/ops/credit-packages'),
+    createPackage: (p: NewPackage) => http.post<CreditPackage>('/ops/credit-packages', p),
+    setPackageActive: (id: string, active: boolean) =>
+      http.patch<void>(`/ops/credit-packages/${t(id)}`, { active }),
+
+    operators: () => http.get<{ items: Operator[] }>('/ops/operators'),
+    inviteOperator: (b: { email: string; name: string; role: 'super' | 'staff' }) =>
+      http.post<Operator>('/ops/operators', b),
+    setOperatorStatus: (id: string, status: 'active' | 'disabled') =>
+      http.post<void>(`/ops/operators/${t(id)}/status`, { status }),
+    resetOperatorMfa: (id: string) => http.post<void>(`/ops/operators/${t(id)}/reset-mfa`, {}),
+
+    mail: (id: string) => http.get<MailInput>(`/ops/tenants/${t(id)}/mail`),
+    saveMail: (id: string, body: MailInput) => http.put<void>(`/ops/tenants/${t(id)}/mail`, body),
+    privacy: (id: string) => http.get<PrivacySettings>(`/ops/tenants/${t(id)}/privacy`),
+    savePrivacy: (id: string, body: PrivacySettings) =>
+      http.put<void>(`/ops/tenants/${t(id)}/privacy`, body),
   };
 }

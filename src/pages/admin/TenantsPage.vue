@@ -210,6 +210,7 @@ async function create() {
             <q-input
               :model-value="form.name"
               outlined
+              autofocus
               :label="t('admin.tenants.new.name')"
               @update:model-value="onName"
             />
