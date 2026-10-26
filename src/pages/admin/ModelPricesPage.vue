@@ -57,15 +57,12 @@ async function seed() {
   seeding.value = true;
   try {
     const r = await session.ops.seedModelPrices();
-    $q.notify({
-      type: 'positive',
-      message: r.created
-        ? t('admin.prices.seeded', { n: r.created })
-        : t('admin.prices.nothingToSeed'),
-    });
+    $q.notify({ type: 'positive', message: t('admin.prices.seeded', { n: r.created }) });
     await load();
   } catch {
-    $q.notify({ type: 'negative', message: t('common.loadError') });
+    // The API refuses a second load (409): somebody already loaded or priced a model.
+    $q.notify({ type: 'warning', message: t('admin.prices.alreadySeeded') });
+    await load();
   } finally {
     seeding.value = false;
   }
@@ -131,13 +128,6 @@ async function save() {
         <p class="ig-muted q-mt-sm q-mb-none">{{ t('admin.prices.intro') }}</p>
       </div>
       <div class="col-12 col-sm-auto row q-gutter-sm">
-        <IgButton
-          variant="secondary"
-          icon="cloud_download"
-          :loading="seeding"
-          :label="t('admin.prices.seed')"
-          @click="seed"
-        />
         <IgButton variant="primary" icon="add" :label="t('admin.prices.add')" @click="start()" />
       </div>
     </div>
@@ -157,6 +147,16 @@ async function save() {
         :title="t('admin.prices.empty')"
         :hint="t('admin.prices.emptyHint')"
       />
+      <div class="text-center q-pb-lg">
+        <IgButton
+          variant="primary"
+          icon="cloud_download"
+          :loading="seeding"
+          :label="t('admin.prices.seed')"
+          @click="seed"
+        />
+        <div class="text-caption ig-muted q-mt-sm">{{ t('admin.prices.seedOnce') }}</div>
+      </div>
     </div>
 
     <div v-for="p in providers" :key="p.provider" class="q-mb-lg">

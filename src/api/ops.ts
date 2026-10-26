@@ -219,8 +219,7 @@ export function opsApi(http: Http) {
     modelPrices: () => http.get<{ items: ModelPriceItem[] }>('/ops/model-prices'),
     addModelPrice: (p: ModelPrice) =>
       http.post<{ created: number }>('/ops/model-prices', { prices: [p] }),
-    seedModelPrices: () =>
-      http.post<{ created: number; skipped: number }>('/ops/model-prices/seed', {}),
+    seedModelPrices: () => http.post<{ created: number }>('/ops/model-prices/seed', {}),
 
     operators: () => http.get<{ items: Operator[] }>('/ops/operators'),
     inviteOperator: (b: { email: string; name: string; role: 'super' | 'staff' }) =>

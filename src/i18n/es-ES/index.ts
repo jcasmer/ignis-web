@@ -389,13 +389,16 @@ export default {
       rule: 'Un cambio es un precio nuevo con su fecha: el anterior queda como historial. Desde esa fecha todos los clientes pagan el nuevo, y lo ya cobrado no se recalcula. Un modelo sin precio no se usa.',
       seed: 'Cargar precios oficiales',
       seeded: 'Se cargaron {n} precios.',
-      nothingToSeed: 'Todos los modelos del catálogo ya tienen precio.',
+      alreadySeeded:
+        'Los precios iniciales ya se habían cargado. Cambia cada precio desde su tarjeta.',
+      seedOnce: 'Se carga una sola vez: después solo se cambia precio por precio.',
       add: 'Nuevo modelo',
       change: 'Cambiar precio',
       changeTitle: 'Cambiar el precio',
       changeHint: 'Se guarda como un precio nuevo; el actual queda en el historial.',
       empty: 'Aún no hay precios',
-      emptyHint: 'Carga los precios oficiales para que la IA pueda responder.',
+      emptyHint:
+        'Carga los precios oficiales para que la IA pueda responder, o agrega un modelo a mano.',
       notYet: 'Sin precio vigente',
       input: 'Entrada (1M tokens)',
       output: 'Salida (1M tokens)',
