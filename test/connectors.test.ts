@@ -7,6 +7,7 @@ import {
   emptyConnector,
   emptyOperation,
   hostOf,
+  isDefaultBase,
   toConnectorInput,
   type ConnectorDraft,
 } from '@/utils/connectors';
@@ -158,6 +159,12 @@ describe('small helpers', () => {
     expect(effectiveRisk({ method: 'GET' })).toBe('read');
     expect(effectiveRisk({ method: 'POST' })).toBe('write');
     expect(effectiveRisk({ method: 'POST', risk: 'read' })).toBe('read');
+  });
+
+  it('tells the address the form starts with from one that was typed', () => {
+    expect(isDefaultBase('https://')).toBe(true);
+    expect(isDefaultBase(' ')).toBe(true);
+    expect(isDefaultBase('https://api.agenda.co')).toBe(false);
   });
 
   it('shows the host of an address', () => {
