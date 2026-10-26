@@ -10,6 +10,7 @@ import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
 import IgSegmented from '@/components/IgSegmented.vue';
 import AutomationsPanel from '@/components/AutomationsPanel.vue';
+import KnowledgePanel from '@/components/KnowledgePanel.vue';
 import ModelPicker from '@/components/ModelPicker.vue';
 import TenantConnectors from '@/components/TenantConnectors.vue';
 import { useSessionStore } from '@/stores/session';
@@ -29,10 +30,12 @@ const ent = ref<Entitlements | null>(null);
 const loading = ref(true);
 const failed = ref(false);
 const missing = ref(false);
-type Tab = 'plan' | 'security' | 'credits' | 'mail' | 'connectors' | 'automations' | 'privacy';
+type Tab =
+  'plan' | 'security' | 'credits' | 'mail' | 'connectors' | 'knowledge' | 'automations' | 'privacy';
 const tab = ref<Tab>('plan');
 const connectorsSeen = ref(false);
 const automationsSeen = ref(false);
+const knowledgeSeen = ref(false);
 
 // --- load -------------------------------------------------------------------
 async function load() {
@@ -365,6 +368,10 @@ function onTab(v: Tab) {
     automationsSeen.value = true;
     planVersion.value++;
   }
+  if (v === 'knowledge') {
+    knowledgeSeen.value = true;
+    planVersion.value++;
+  }
   if (v === 'security' && !mfaLoaded.value) void loadSecurity();
   if (v === 'credits' && !statement.value) void loadStatement();
   if (v === 'mail' && !mailLoaded.value) void loadMail();
@@ -433,6 +440,7 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
             { value: 'credits', label: t('admin.tenant.tabs.credits') },
             { value: 'mail', label: t('admin.tenant.tabs.mail') },
             { value: 'connectors', label: t('admin.tenant.tabs.connectors') },
+            { value: 'knowledge', label: t('admin.tenant.tabs.knowledge') },
             { value: 'automations', label: t('admin.tenant.tabs.automations') },
             { value: 'privacy', label: t('admin.tenant.tabs.privacy') },
           ]"
@@ -447,6 +455,12 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
         v-show="tab === 'connectors'"
         :tenant-id="id"
       />
+
+      <!-- Knowledge: the Ignis team uploads and indexes the documents of the tenant -->
+      <div v-if="knowledgeSeen" v-show="tab === 'knowledge'" :key="`k${planVersion}`">
+        <p class="ig-muted q-mt-none">{{ t('admin.tenant.knowledgeIntro') }}</p>
+        <KnowledgePanel :client="session.ops.knowledgeOf(id)" />
+      </div>
 
       <!-- Automations: loaded when the tab is first opened and kept after that -->
       <AutomationsPanel

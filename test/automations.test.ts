@@ -469,3 +469,66 @@ describe('the model of a step', () => {
     expect(ruleToDraft(stored).steps[0]?.model).toBe('deepseek:deepseek-chat');
   });
 });
+
+describe('the knowledge search step', () => {
+  const search = (over: Partial<StepDraft> = {}) =>
+    step('knowledge_search', { as: 'k', query: '{{message.text}}', ...over });
+
+  it('is sent with its question, and the limit only when it was chosen', () => {
+    const a = ok(rule({ steps: [search(), step('reply', { text: 'Hola' })] })).actions[0];
+    expect(a).toEqual({ type: 'knowledge_search', query: '{{message.text}}', as: 'k' });
+    const b = ok(rule({ steps: [search({ limit: '6' })] })).actions[0];
+    expect(b?.limit).toBe(6);
+  });
+
+  it('asks for a question, a valid limit and a name for the result', () => {
+    const err = (s: StepDraft) => {
+      const r = draftToInput(rule({ steps: [s] }));
+      return r.ok ? null : r.error;
+    };
+    expect(err(search({ query: '  ' }))).toBe('knowledgeQuery');
+    expect(err(search({ query: 'x'.repeat(501) }))).toBe('knowledgeQuery');
+    expect(err(search({ limit: '9' }))).toBe('knowledgeLimit');
+    expect(err(search({ limit: '2.5' }))).toBe('knowledgeLimit');
+    expect(err(search({ as: '' }))).toBe('variable');
+    expect(err(search({ query: '{{nada.x}}' }))).toBe('unknownField');
+  });
+
+  it('offers what it found to the steps after it, and `found` as a yes/no condition', () => {
+    const steps = [search(), step('reply', { text: 'Hola' })];
+    expect(varsBefore(steps, 1)).toEqual(['k']);
+    expect(extractedFields(steps, 1)).toEqual(['vars.k.found', 'vars.k.text']);
+    expect(fieldKind('vars.k.found')).toBe('flag');
+    expect(opsFor('vars.k.found')).toEqual(['equals']);
+    expect(fieldKind('vars.k.text')).toBe('text');
+  });
+
+  it('comes back into the draft', () => {
+    const input = ok(rule({ steps: [search({ limit: '3' })] }));
+    const d = ruleToDraft({ ...input, id: 'r1', version: 1 } as unknown as AutomationRule);
+    expect(d.steps[0]).toMatchObject({
+      type: 'knowledge_search',
+      query: '{{message.text}}',
+      limit: '3',
+      as: 'k',
+    });
+  });
+
+  it('can be guarded by whether it found something', () => {
+    const guarded = step('email_business', {
+      subject: 'Sin respuesta',
+      body: 'Nada sobre {{message.text}}',
+      guard: {
+        enabled: true,
+        match: 'all',
+        conditions: [{ field: 'vars.k.found', op: 'equals', text: '', flag: false }],
+      },
+    });
+    const a = ok(rule({ steps: [search(), guarded] })).actions[1];
+    expect(a?.when?.conditions[0]).toMatchObject({
+      field: 'vars.k.found',
+      op: 'equals',
+      value: false,
+    });
+  });
+});

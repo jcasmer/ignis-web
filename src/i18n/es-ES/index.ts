@@ -346,6 +346,10 @@ export default {
           name: 'Leer la actividad',
           hint: 'Trae tus cifras: mensajes, contactos nuevos y traspasos.',
         },
+        knowledge_search: {
+          name: 'Consultar conocimiento',
+          hint: 'Busca en los documentos del negocio y guarda lo que encuentre.',
+        },
       },
       replyText: 'Texto de la respuesta',
       subject: 'Asunto',
@@ -390,6 +394,13 @@ export default {
         "Un nombre corto. Luego: {'{{vars.nombre}}'}, o {'{{vars.nombre.campo}}'} si extrae datos.",
       maxTokens: 'Largo máximo de la respuesta (opcional)',
       maxTokensHint: 'Entre 50 y 1500',
+      knowledgeQuery: 'Qué buscar',
+      knowledgeQueryHint:
+        "Admite campos, por ejemplo {'{{message.text}}'}. Los datos personales no se envían.",
+      knowledgeSaveAsHint:
+        "Luego: {'{{vars.nombre.text}}'} es lo encontrado y vars.nombre.found dice si hubo algo.",
+      knowledgeLimit: 'Cuántos fragmentos',
+      knowledgeLimitHint: 'De 1 a 8; vacío: 4',
       modelDefault: 'El del plan',
       fieldsAvailable: 'Puedes usar en los textos:',
       guard: {
@@ -516,6 +527,8 @@ export default {
         schemaValues: 'Los valores permitidos solo sirven para campos de texto',
         maxTokens: 'El largo máximo es un entero entre 50 y 1500.',
         days: 'Los días son un entero entre 1 y 90.',
+        knowledgeQuery: 'Escribe qué buscar en los documentos (hasta 500 caracteres).',
+        knowledgeLimit: 'Los fragmentos son un entero entre 1 y 8.',
         unknownField: 'Un texto usa un campo que esta regla no tiene.',
         unclosed: "Hay una llave {'{{'} sin cerrar en un texto.",
         undefinedVariable: 'Un texto usa un resultado que ningún paso anterior guarda.',
@@ -809,9 +822,12 @@ export default {
         credits: 'Créditos',
         mail: 'Correo',
         connectors: 'Conectores',
+        knowledge: 'Conocimiento',
         automations: 'Automatizaciones',
         privacy: 'Privacidad',
       },
+      knowledgeIntro:
+        'Los documentos de este cliente los subes e indexas tú. Las automatizaciones y el asistente leen lo que quede indexado aquí.',
       connectors: {
         title: 'Conectores',
         hint: 'Los sistemas del cliente a los que su asistente puede llegar. Cada operación se vuelve una herramienta del asistente.',

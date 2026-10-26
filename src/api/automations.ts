@@ -48,7 +48,8 @@ export type AutomationActionType =
   | 'handoff'
   | 'ai_analyze'
   | 'ai_extract'
-  | 'ignis_stats';
+  | 'ignis_stats'
+  | 'knowledge_search';
 
 export interface AutomationAction {
   type: AutomationActionType;
@@ -64,6 +65,8 @@ export interface AutomationAction {
   inputs?: Record<string, string>;
   schema?: Record<string, unknown>;
   model?: string;
+  query?: string;
+  limit?: number;
   max_tokens?: number;
   days?: number;
   when?: AutomationGuard;

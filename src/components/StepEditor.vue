@@ -43,6 +43,7 @@ const ICONS: Record<StepDraft['type'], string> = {
   ai_analyze: 'auto_awesome',
   ai_extract: 'data_object',
   ignis_stats: 'insights',
+  knowledge_search: 'menu_book',
 };
 
 const icon = computed(() => ICONS[step.value.type]);
@@ -278,6 +279,40 @@ const DAYS = [1, 3, 7, 14, 30, 60, 90];
           :label="t('tenant.automations.handoffNote')"
           :hint="t('tenant.automations.handoffNoteHint')"
         />
+      </template>
+
+      <!-- knowledge -->
+      <template v-else-if="step.type === 'knowledge_search'">
+        <q-input
+          v-model="step.query"
+          dense
+          outlined
+          maxlength="500"
+          :label="t('tenant.automations.knowledgeQuery')"
+          :hint="t('tenant.automations.knowledgeQueryHint')"
+        />
+        <div class="row q-col-gutter-sm q-mt-xs">
+          <div class="col-12 col-sm-7">
+            <q-input
+              v-model="step.as"
+              dense
+              outlined
+              maxlength="24"
+              :label="t('tenant.automations.saveAs')"
+              :hint="t('tenant.automations.knowledgeSaveAsHint')"
+            />
+          </div>
+          <div class="col-12 col-sm-5">
+            <q-input
+              v-model="step.limit"
+              dense
+              outlined
+              inputmode="numeric"
+              :label="t('tenant.automations.knowledgeLimit')"
+              :hint="t('tenant.automations.knowledgeLimitHint')"
+            />
+          </div>
+        </div>
       </template>
 
       <!-- activity -->
