@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import type { AutomationInput, AutomationSampleEvent, AutomationTrace } from '@/api/automations';
@@ -13,6 +13,7 @@ const props = defineProps<{
   test: (rule: AutomationInput, event: AutomationSampleEvent) => Promise<AutomationTrace>;
 }>();
 const { t } = useI18n();
+const operator = inject('automationsOperatorView', false);
 
 const text = ref('Hola, ¿cuál es el horario?');
 const channel = ref('whatsapp');
@@ -45,7 +46,9 @@ async function run() {
     const code = (e as { code?: string }).code;
     error.value =
       code === 'module_not_included'
-        ? t('tenant.automations.notIncludedAi')
+        ? operator
+          ? t('admin.tenant.automationsOff.ai')
+          : t('tenant.automations.notIncludedAi')
         : t('tenant.automations.test.failed');
   } finally {
     running.value = false;

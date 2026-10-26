@@ -455,6 +455,7 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
         v-if="automationsSeen"
         :key="`a${planVersion}`"
         v-show="tab === 'automations'"
+        operator
         :client="session.ops.automationsOf(id)"
         :load-connectors="async () => (await session.ops.connectors(id)).items"
       />

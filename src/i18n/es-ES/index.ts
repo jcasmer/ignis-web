@@ -791,6 +791,10 @@ export default {
     },
     tenant: {
       back: 'Clientes',
+      automationsOff: {
+        plain: 'Este cliente no tiene el módulo de automatizaciones. Actívalo en la pestaña Plan.',
+        ai: 'Este cliente no tiene el módulo de automatizaciones con IA. Actívalo en la pestaña Plan.',
+      },
       tabs: {
         plan: 'Plan',
         security: 'Seguridad',

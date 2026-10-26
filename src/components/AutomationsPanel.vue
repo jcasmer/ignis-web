@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuasar } from 'quasar';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, provide, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import type {
@@ -29,7 +29,10 @@ import {
 const props = defineProps<{
   client: AutomationsClient;
   loadConnectors: () => Promise<Connector[]>;
+  /** Seen by the Ignis team, not by the customer: the texts say how to fix it, not whom to ask. */
+  operator?: boolean;
 }>();
+provide('automationsOperatorView', props.operator === true);
 
 const { t } = useI18n();
 const $q = useQuasar();
@@ -119,12 +122,15 @@ function start(r?: AutomationRule) {
   building.value = true;
 }
 
+const notIncludedText = (ai: boolean) =>
+  props.operator
+    ? t(ai ? 'admin.tenant.automationsOff.ai' : 'admin.tenant.automationsOff.plain')
+    : `${t(ai ? 'tenant.automations.notIncludedAi' : 'tenant.automations.notIncluded')} ${t('common.managedByIgnis')}`;
+
 function refusal(e: unknown, input: AutomationInput): string {
   const code = codeOf(e);
   if (code === 'module_not_included') {
-    return usesAI(input)
-      ? t('tenant.automations.notIncludedAi')
-      : t('tenant.automations.notIncluded');
+    return notIncludedText(usesAI(input));
   }
   if (code === 'limit_exceeded') return t('tenant.automations.limit');
   if ((e as { status?: number }).status === 400) return t('tenant.automations.saveRejected');
@@ -233,7 +239,7 @@ const statusClass = (s: AutomationRun['status']) =>
     </div>
 
     <IgAlert v-if="notIncluded" tone="info">
-      {{ t('tenant.automations.notIncluded') }} {{ t('common.managedByIgnis') }}
+      {{ notIncludedText(false) }}
     </IgAlert>
     <IgAlert v-else-if="failed" tone="error" class="q-mb-md">
       {{ t('common.loadError') }}
