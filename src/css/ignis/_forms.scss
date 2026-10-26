@@ -213,3 +213,15 @@ body.body--dark .ig-pill--brand {
   box-shadow: var(--ig-shadow-3);
   font-weight: 500;
 }
+
+// Toasts arrive at the top, just under the header, and never over the phone's bottom bar.
+.q-notifications__list--top {
+  margin-top: calc(60px + env(safe-area-inset-top));
+}
+
+.ig-toast.q-notification {
+  min-height: 44px;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  box-shadow: var(--ig-shadow-3);
+}

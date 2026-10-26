@@ -111,7 +111,7 @@ export default defineConfig((ctx) => {
     framework: {
       config: {
         dark: 'auto',
-        notify: { position: 'bottom', timeout: 3200, classes: 'ig-toast', progress: false },
+        notify: { position: 'top', timeout: 3200, classes: 'ig-toast', progress: false },
       },
 
       // iconSet: 'material-icons', // Quasar icon set
