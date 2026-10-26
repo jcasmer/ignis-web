@@ -42,6 +42,7 @@ const section = ref<Section>('plain');
 
 const rules = ref<AutomationRule[]>([]);
 const connectors = ref<Connector[]>([]);
+const models = ref<string[]>([]);
 const loading = ref(true);
 const failed = ref(false);
 const notIncluded = ref(false);
@@ -62,6 +63,11 @@ async function load() {
   }
   // The systems of the tenant are only for the steps that call them: not having them is not an error.
   connectors.value = await props.loadConnectors().catch(() => []);
+  // Without the list the steps simply use the model of the plan.
+  models.value = await props.client
+    .models()
+    .then((r) => r.items)
+    .catch(() => []);
 }
 onMounted(load);
 
@@ -428,6 +434,7 @@ const statusClass = (s: AutomationRun['status']) =>
           v-model="draft"
           class="col"
           :connectors="connectors"
+          :models="models"
           :saving="saving"
           :api-error="apiError"
           :test="(rule, event) => client.test(rule, event)"

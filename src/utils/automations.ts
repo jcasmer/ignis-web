@@ -109,6 +109,8 @@ export interface StepDraft {
   prompt: string;
   inputs: InputDraft[];
   fields: SchemaField[];
+  /** "provider:model"; empty uses the model of the plan. */
+  model: string;
   maxTokens: string;
   days: string;
 }
@@ -159,6 +161,7 @@ export function emptyStep(type: AutomationActionType): StepDraft {
     prompt: '',
     inputs: [],
     fields: [],
+    model: '',
     maxTokens: '',
     days: '7',
   };
@@ -246,6 +249,7 @@ function stepToDraft(a: AutomationAction): StepDraft {
   step.prompt = a.prompt ?? '';
   step.inputs = Object.entries(a.inputs ?? {}).map(([label, value]) => ({ label, value }));
   step.fields = fieldsOf(a.schema);
+  step.model = a.model ?? '';
   step.maxTokens = a.max_tokens ? String(a.max_tokens) : '';
   step.days = a.days ? String(a.days) : '7';
   return step;
@@ -492,6 +496,7 @@ function buildStep(
         if (p) return fail(p, i.label);
         inputs[i.label] = i.value;
       }
+      if (s.model) action.model = s.model;
       const tokens = s.maxTokens.trim();
       if (tokens) {
         const n = parseNumber(tokens);

@@ -10,6 +10,7 @@ import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
 import IgSegmented from '@/components/IgSegmented.vue';
 import AutomationsPanel from '@/components/AutomationsPanel.vue';
+import ModelPicker from '@/components/ModelPicker.vue';
 import TenantConnectors from '@/components/TenantConnectors.vue';
 import { useSessionStore } from '@/stores/session';
 import { diffLimits, diffModules, usdToMicro } from '@/utils/plan';
@@ -177,10 +178,7 @@ async function savePlan() {
   }
 }
 
-const modelOptions = computed(() => [
-  { value: '', label: t('admin.tenant.plan.modelProfile') },
-  ...(catalog.value?.models ?? []).map((m) => ({ value: m.model, label: m.model })),
-]);
+const modelRefs = computed(() => (catalog.value?.models ?? []).map((m) => m.model));
 
 const unitText = (d: LimitDef) => {
   if (d.unit <= 1) return '';
@@ -516,14 +514,14 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
         </div>
 
         <div class="ig-card q-pa-lg q-gutter-y-md">
-          <q-select
-            v-model="llmModel"
-            outlined
-            emit-value
-            map-options
-            :options="modelOptions"
-            :label="t('admin.tenant.plan.model')"
-          />
+          <div>
+            <div class="text-caption ig-muted q-mb-xs">{{ t('admin.tenant.plan.model') }}</div>
+            <ModelPicker
+              v-model="llmModel"
+              :models="modelRefs"
+              :default-label="t('admin.tenant.plan.modelProfile')"
+            />
+          </div>
           <q-toggle v-model="downgrade" :label="t('admin.tenant.plan.downgrade')" color="primary" />
           <div class="row q-col-gutter-md">
             <div class="col-12 col-sm-6">

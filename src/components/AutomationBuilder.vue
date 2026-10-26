@@ -26,6 +26,7 @@ import {
 
 const props = defineProps<{
   connectors: Connector[];
+  models: string[];
   saving: boolean;
   /** Why the API refused the rule, when it did. */
   apiError: string;
@@ -234,6 +235,7 @@ function buildForTest(): { input?: AutomationInput; error?: string } {
               :steps="draft.steps"
               :trigger="draft.trigger"
               :connectors="connectors"
+              :models="models"
               :problem="problems.step[i]"
               :first="i === 0"
               :last="i === draft.steps.length - 1"

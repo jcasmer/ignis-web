@@ -63,6 +63,7 @@ export interface AutomationAction {
   prompt?: string;
   inputs?: Record<string, string>;
   schema?: Record<string, unknown>;
+  model?: string;
   max_tokens?: number;
   days?: number;
   when?: AutomationGuard;
@@ -136,6 +137,8 @@ export interface AutomationsClient {
   remove(id: string): Promise<void>;
   runs(p?: { rule?: string; limit?: number }): Promise<{ items: AutomationRun[] }>;
   test(rule: AutomationInput, event: AutomationSampleEvent): Promise<AutomationTrace>;
+  /** The models a step may ask for, as "provider:model". */
+  models(): Promise<{ items: string[] }>;
 }
 
 function query(params: Record<string, string | number | undefined>): string {
@@ -155,5 +158,6 @@ export function automationsClient(http: Http, base: string): AutomationsClient {
     remove: (id) => http.del(one(id)),
     runs: (p = {}) => http.get(`${base}/runs${query({ rule: p.rule, limit: p.limit })}`),
     test: (rule, event) => http.post(`${base}/test`, { rule, event }),
+    models: () => http.get(`${base}/models`),
   };
 }
