@@ -1,0 +1,112 @@
+// Ignis buttons. They sit on Quasar's q-btn (behaviour, loading, a11y) but none
+// of its look is used: shape, depth and states are ours.
+.q-btn.ig-btn {
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: var(--ig-r-sm);
+  font-family: var(--ig-font);
+  font-size: 0.925rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  text-transform: none;
+  transition:
+    transform 0.15s var(--ig-ease),
+    box-shadow 0.2s var(--ig-ease),
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+
+  .q-btn__content {
+    gap: 8px;
+  }
+
+  .q-icon {
+    font-size: 1.25em;
+  }
+
+  &:not(.disabled):active {
+    transform: translateY(1px) scale(0.99);
+  }
+
+  &.disabled,
+  &[disabled] {
+    opacity: 0.45 !important;
+  }
+
+  // Quasar draws its own focus overlay; ours is the shared ring.
+  .q-focus-helper {
+    display: none;
+  }
+}
+
+// Primary: amber with ink text, a lit top edge and a warm glow.
+.q-btn.ig-btn--primary {
+  color: var(--ig-ink);
+  background: linear-gradient(
+    180deg,
+    var(--ig-amber-200) 0%,
+    var(--ig-amber-300) 38%,
+    var(--ig-amber-500) 100%
+  );
+  border: 1px solid rgb(154 103 0 / 40%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 60%),
+    0 1px 0 rgb(154 103 0 / 25%),
+    var(--ig-glow);
+
+  &:not(.disabled):hover {
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 70%),
+      0 1px 0 rgb(154 103 0 / 30%),
+      0 12px 28px -8px rgb(242 169 0 / 65%);
+    filter: saturate(1.08);
+  }
+}
+
+// Secondary: a quiet surface with a hairline; the border warms on hover.
+.q-btn.ig-btn--secondary {
+  color: var(--ig-text);
+  background: var(--ig-surface);
+  border: 1px solid var(--ig-line-strong);
+  box-shadow: var(--ig-shadow-1);
+
+  &:not(.disabled):hover {
+    background: var(--ig-surface-2);
+    border-color: var(--ig-amber-500);
+  }
+}
+
+// Ghost: no chrome until it is touched.
+.q-btn.ig-btn--ghost {
+  color: var(--ig-text);
+  background: transparent;
+  border: 1px solid transparent;
+
+  &:not(.disabled):hover {
+    background: var(--ig-surface-2);
+  }
+}
+
+// Icon-only buttons: round, 44px to touch, 36px on desktop.
+.q-btn.ig-btn--icon {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 50%;
+
+  @media (min-width: 1024px) {
+    min-width: 38px;
+    min-height: 38px;
+  }
+}
+
+.q-btn.ig-btn--sm {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 0.82rem;
+}
+
+.q-btn.ig-btn--block {
+  width: 100%;
+}

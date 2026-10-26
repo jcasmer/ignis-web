@@ -13,6 +13,8 @@ export default {
     theme: 'Cambiar tema',
     soon: 'Próximamente',
     menu: 'Menú',
+    show: 'Mostrar contraseña',
+    hide: 'Ocultar contraseña',
     close: 'Cerrar',
     export: 'Descargar CSV',
     vsPrevious: 'vs. anterior',
@@ -106,6 +108,7 @@ export default {
         handoffReasons: 'Por qué se pasó a una persona',
         noHandoffs: 'Ninguna conversación se pasó a una persona en este periodo.',
         selfResolved: 'Se resolvieron solas',
+        handoffUnit: 'traspasos',
       },
       reasons: {
         contact_request: 'Lo pidió el contacto',

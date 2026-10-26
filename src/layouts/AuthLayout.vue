@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
+import IgButton from '@/components/IgButton.vue';
 import IgnisMark from '@/components/IgnisMark.vue';
 import { toggleTheme } from '@/composables/useTheme';
 
@@ -20,17 +21,16 @@ const isOps = computed(() => route.meta.area === 'ops');
           <div class="ig-card ig-auth__card">
             <router-view />
           </div>
-          <div class="q-mt-lg row items-center q-gutter-x-md">
+          <div class="q-mt-lg row items-center q-gutter-x-sm">
             <router-link :to="isOps ? '/login' : '/admin/login'" class="text-caption">
               {{ isOps ? t('auth.toTenant') : t('auth.toAdmin') }}
             </router-link>
-            <q-btn
-              flat
-              round
-              dense
+            <IgButton
+              variant="ghost"
+              icon-only
               size="sm"
               icon="contrast"
-              :aria-label="t('common.theme')"
+              :label="t('common.theme')"
               @click="toggleTheme"
             />
           </div>

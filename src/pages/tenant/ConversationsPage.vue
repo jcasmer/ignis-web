@@ -5,6 +5,9 @@ import { useI18n } from 'vue-i18n';
 
 import type { ConversationMessage, ConversationSummary, Handoff } from '@/api/tenant';
 import { useSessionStore } from '@/stores/session';
+import IgButton from '@/components/IgButton.vue';
+import IgAlert from '@/components/IgAlert.vue';
+import EmptyState from '@/components/EmptyState.vue';
 
 const { t } = useI18n();
 const $q = useQuasar();
@@ -120,66 +123,62 @@ onMounted(() => {
 
 <template>
   <q-page padding>
-    <h1 class="text-h4 text-weight-bold q-mt-none q-mb-md">
-      {{ t('tenant.conversations.title') }}
-    </h1>
+    <div class="q-mb-lg">
+      <div class="ig-eyebrow q-mb-xs">{{ t('tenant.nav.conversations') }}</div>
+      <h1 class="text-h4 q-my-none">{{ t('tenant.conversations.title') }}</h1>
+    </div>
 
     <div class="row q-col-gutter-md">
       <!-- On a phone only one of the two panes shows at a time. -->
-      <div class="col-12 col-md-4" :class="{ 'gt-sm': selected }">
-        <div class="ig-card">
-          <q-banner v-if="failed" role="alert" class="bg-transparent">
+      <div class="col-12 col-md-5 col-lg-4" :class="{ 'gt-sm': selected }">
+        <div class="ig-card" style="overflow: hidden">
+          <IgAlert v-if="failed" tone="error" class="q-ma-md">
             {{ t('common.loadError') }}
-            <template #action
-              ><q-btn flat no-caps :label="t('common.retry')" @click="loadList()"
-            /></template>
-          </q-banner>
-          <q-list separator>
-            <q-item
-              v-for="c in list"
-              :key="c.id"
-              clickable
-              :active="selected?.id === c.id"
-              active-class="ig-selected"
-              @click="open(c)"
-            >
-              <q-item-section avatar>
-                <q-avatar color="accent" text-color="dark" size="40px">{{
-                  nameOf(c).charAt(0).toUpperCase()
-                }}</q-avatar>
-              </q-item-section>
-              <q-item-section>
-                <q-item-label class="text-weight-medium ellipsis">{{ nameOf(c) }}</q-item-label>
-                <q-item-label caption lines="1">
-                  <q-icon
-                    :name="c.last_direction === 'in' ? 'south_west' : 'north_east'"
-                    size="12px"
-                    class="q-mr-xs"
-                  />{{ c.last_message }}
-                </q-item-label>
-              </q-item-section>
-              <q-item-section side top>
-                <q-item-label caption>{{
-                  new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'short' }).format(
-                    new Date(c.last_message_at),
-                  )
-                }}</q-item-label>
-                <q-icon v-if="c.handoff_active" name="support_agent" color="accent" size="18px"
-                  ><q-tooltip>{{ t('tenant.conversations.handoffActive') }}</q-tooltip></q-icon
-                >
-              </q-item-section>
-            </q-item>
-          </q-list>
+            <template #action>
+              <IgButton variant="ghost" size="sm" :label="t('common.retry')" @click="loadList()" />
+            </template>
+          </IgAlert>
+          <button
+            v-for="c in list"
+            :key="c.id"
+            type="button"
+            class="ig-row"
+            :aria-current="selected?.id === c.id"
+            @click="open(c)"
+          >
+            <span class="ig-avatar">{{ nameOf(c).charAt(0).toUpperCase() }}</span>
+            <span class="col" style="min-width: 0">
+              <span class="row items-center no-wrap">
+                <span class="text-weight-bold ellipsis col">{{ nameOf(c) }}</span>
+                <span class="text-caption ig-muted q-ml-sm">
+                  {{
+                    new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'short' }).format(
+                      new Date(c.last_message_at),
+                    )
+                  }}
+                </span>
+              </span>
+              <span class="row items-center no-wrap q-mt-xs">
+                <q-icon
+                  :name="c.last_direction === 'in' ? 'south_west' : 'north_east'"
+                  size="14px"
+                  class="ig-muted q-mr-xs"
+                />
+                <span class="ellipsis text-body2 ig-muted col">{{ c.last_message }}</span>
+                <span v-if="c.handoff_active" class="ig-pill ig-pill--amber q-ml-sm">
+                  <q-icon name="support_agent" size="13px" />
+                </span>
+              </span>
+            </span>
+          </button>
           <div v-if="loadingList && !list.length" class="q-pa-md">
-            <q-skeleton v-for="n in 5" :key="n" height="48px" class="q-mb-sm" />
+            <q-skeleton v-for="n in 5" :key="n" height="52px" class="q-mb-sm" />
           </div>
-          <div v-else-if="!list.length && !failed" class="q-pa-lg text-center ig-muted">
-            {{ t('common.empty') }}
-          </div>
+          <EmptyState v-else-if="!list.length && !failed" icon="forum" :title="t('common.empty')" />
           <div v-if="listCursor" class="q-pa-sm text-center">
-            <q-btn
-              flat
-              no-caps
+            <IgButton
+              variant="ghost"
+              size="sm"
               :loading="loadingList"
               :label="t('common.loadMore')"
               @click="loadList(true)"
@@ -188,60 +187,53 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="col-12 col-md-8" :class="{ 'gt-sm': !selected }">
-        <div class="ig-card" style="min-height: 420px">
-          <div v-if="!selected" class="q-pa-xl text-center ig-muted">
-            {{ t('tenant.conversations.select') }}
-          </div>
+      <div class="col-12 col-md-7 col-lg-8" :class="{ 'gt-sm': !selected }">
+        <div class="ig-card" style="min-height: 420px; overflow: hidden">
+          <EmptyState
+            v-if="!selected"
+            icon="chat_bubble_outline"
+            :title="t('tenant.conversations.select')"
+          />
           <template v-else>
             <div
               class="row items-center no-wrap q-pa-md"
               style="border-bottom: 1px solid var(--ig-line)"
             >
-              <q-btn
-                flat
-                round
-                dense
-                icon="arrow_back"
+              <IgButton
                 class="lt-md q-mr-sm"
-                :aria-label="t('common.back')"
+                variant="ghost"
+                icon-only
+                icon="arrow_back"
+                :label="t('common.back')"
                 @click="selected = null"
               />
-              <div class="col">
-                <div class="text-subtitle1 text-weight-medium">{{ nameOf(selected) }}</div>
-                <div class="text-caption ig-muted">
+              <span class="ig-avatar q-mr-md">{{ nameOf(selected).charAt(0).toUpperCase() }}</span>
+              <div class="col" style="min-width: 0">
+                <div class="text-subtitle1 text-weight-bold ellipsis">{{ nameOf(selected) }}</div>
+                <div class="text-caption ig-muted ellipsis">
                   {{ selected.contact.channel }} · {{ selected.contact.external_id }}
                 </div>
               </div>
-              <q-badge
-                v-if="selected.status === 'closed'"
-                outline
-                color="grey"
-                :label="t('tenant.conversations.closed')"
-              />
+              <span v-if="selected.status === 'closed'" class="ig-pill">
+                {{ t('tenant.conversations.closed') }}
+              </span>
             </div>
 
-            <q-banner
-              v-if="handoff"
-              class="bg-transparent"
-              style="border-bottom: 1px solid var(--ig-line)"
-            >
-              <template #avatar><q-icon name="support_agent" color="accent" /></template>
-              {{ t('tenant.conversations.handoffActive') }}.
-              <span class="ig-muted"
-                >{{ t('tenant.conversations.expiresAt') }}: {{ when(handoff.expires_at) }}</span
-              >
+            <IgAlert v-if="handoff" tone="warn" class="q-ma-md">
+              <div class="text-weight-bold">{{ t('tenant.conversations.handoffActive') }}</div>
+              <div class="text-caption" style="opacity: 0.85">
+                {{ t('tenant.conversations.expiresAt') }}: {{ when(handoff.expires_at) }}
+              </div>
               <template #action>
-                <q-btn
-                  class="ig-btn-primary"
-                  unelevated
-                  no-caps
+                <IgButton
+                  variant="primary"
+                  size="sm"
                   :loading="closing"
                   :label="t('tenant.conversations.returnToAssistant')"
                   @click="giveBack"
                 />
               </template>
-            </q-banner>
+            </IgAlert>
 
             <div
               ref="thread"
@@ -249,9 +241,8 @@ onMounted(() => {
               style="max-height: 62vh; overflow-y: auto"
             >
               <div v-if="olderCursor" class="text-center">
-                <q-btn
-                  flat
-                  no-caps
+                <IgButton
+                  variant="ghost"
                   size="sm"
                   :loading="loadingThread"
                   :label="t('tenant.conversations.older')"
@@ -266,17 +257,10 @@ onMounted(() => {
                 :class="m.direction === 'out' ? 'justify-end' : 'justify-start'"
               >
                 <div
-                  class="q-pa-sm rounded-borders"
-                  :style="{
-                    maxWidth: '78%',
-                    background:
-                      m.direction === 'out' ? 'var(--ig-amber-300)' : 'var(--ig-surface-2)',
-                    color: m.direction === 'out' ? 'var(--ig-ink)' : 'var(--ig-text)',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                  }"
+                  class="ig-bubble"
+                  :class="m.direction === 'out' ? 'ig-bubble--out' : 'ig-bubble--in'"
                 >
-                  <div class="text-caption" style="opacity: 0.7">
+                  <div class="ig-bubble__meta">
                     {{
                       m.direction === 'out'
                         ? t('tenant.conversations.outbound')
@@ -286,10 +270,18 @@ onMounted(() => {
                   </div>
                   <!-- Plain text on purpose: a message is never rendered as HTML. -->
                   <div>{{ m.body }}</div>
-                  <div v-if="m.flags.length" class="text-caption text-warning q-mt-xs">
+                  <div
+                    v-if="m.flags.length"
+                    class="text-caption q-mt-xs"
+                    style="color: var(--ig-warn)"
+                  >
                     <q-icon name="shield" size="14px" /> {{ t('tenant.conversations.flagged') }}
                   </div>
-                  <div v-if="m.status === 'failed'" class="text-caption text-negative q-mt-xs">
+                  <div
+                    v-if="m.status === 'failed'"
+                    class="text-caption q-mt-xs"
+                    style="color: var(--ig-error)"
+                  >
                     {{ t('tenant.conversations.failed') }}
                   </div>
                 </div>

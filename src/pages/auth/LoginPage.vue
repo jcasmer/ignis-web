@@ -6,6 +6,8 @@ import { useRoute, useRouter } from 'vue-router';
 import { useApiError } from '@/composables/useApiError';
 import { home } from '@/router/routes';
 import { useSessionStore } from '@/stores/session';
+import IgButton from '@/components/IgButton.vue';
+import IgAlert from '@/components/IgAlert.vue';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -48,9 +50,7 @@ async function submit() {
       <p class="ig-muted q-mt-xs q-mb-none">{{ t(`auth.${area}.subtitle`) }}</p>
     </div>
 
-    <q-banner v-if="error" role="alert" rounded class="bg-negative text-white" dense>{{
-      error
-    }}</q-banner>
+    <IgAlert v-if="error" tone="error">{{ error }}</IgAlert>
 
     <q-input
       v-model="email"
@@ -77,26 +77,17 @@ async function submit() {
           class="cursor-pointer"
           role="button"
           tabindex="0"
+          :aria-label="reveal ? t('common.hide') : t('common.show')"
           @click="reveal = !reveal"
           @keyup.enter="reveal = !reveal"
         />
       </template>
     </q-input>
 
-    <q-btn
-      type="submit"
-      class="ig-btn-primary full-width"
-      unelevated
-      no-caps
-      size="lg"
-      :label="t('auth.signIn')"
-      :loading="busy"
-    />
+    <IgButton type="submit" variant="primary" block :label="t('auth.signIn')" :loading="busy" />
 
     <div class="text-center">
-      <router-link :to="`${prefix}/forgot`" class="text-caption">{{
-        t('auth.forgot')
-      }}</router-link>
+      <router-link :to="`${prefix}/forgot`" class="text-body2">{{ t('auth.forgot') }}</router-link>
     </div>
   </q-form>
 </template>

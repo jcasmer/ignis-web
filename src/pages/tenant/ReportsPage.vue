@@ -4,7 +4,11 @@ import { useI18n } from 'vue-i18n';
 
 import type { StatsOverview } from '@/api/tenant';
 import EChart from '@/components/EChart.vue';
+import IgAlert from '@/components/IgAlert.vue';
+import IgButton from '@/components/IgButton.vue';
+import IgSegmented from '@/components/IgSegmented.vue';
 import { useSessionStore } from '@/stores/session';
+import { axisStyle, legendStyle, lineSeries } from '@/utils/chartTheme';
 import { chartColors } from '@/utils/palette';
 import {
   change,
@@ -118,16 +122,15 @@ const chartOption = computed(() => {
   const money = metric.value === 'charged_micro';
   const show = (v: number) => (money ? v / 1_000_000 : v);
   return {
-    color: [chartColors.amber, chartColors.stone],
-    grid: { left: 44, right: 12, top: 40, bottom: 28 },
-    legend: { top: 0 },
+    grid: { left: 8, right: 8, top: 40, bottom: 8, containLabel: true },
+    legend: legendStyle,
     tooltip: {
       trigger: 'axis',
-      formatter: (items: { dataIndex: number; seriesName: string; color: string }[]) => {
+      formatter: (items: { dataIndex: number }[]) => {
         const i = items[0]?.dataIndex ?? 0;
         const lines = [
           `<b>${labels[i] ?? ''}</b>`,
-          `<span style="color:${chartColors.amber}">●</span> ${t('tenant.reports.current')}: ${fmt(metric.value, now[i] ?? 0)}`,
+          `<span style="color:${chartColors.amber}">●</span> ${t('tenant.reports.current')}: <b>${fmt(metric.value, now[i] ?? 0)}</b>`,
         ];
         const pp = prev?.series[i];
         if (pp) {
@@ -138,35 +141,13 @@ const chartOption = computed(() => {
         return lines.join('<br/>');
       },
     },
-    xAxis: {
-      type: 'category',
-      data: labels,
-      boundaryGap: false,
-      axisLine: { lineStyle: { color: '#8884' } },
-    },
-    yAxis: {
-      type: 'value',
-      minInterval: money ? undefined : 1,
-      splitLine: { lineStyle: { color: '#8882' } },
-    },
+    xAxis: { ...axisStyle.xAxis, boundaryGap: false, data: labels },
+    yAxis: { ...axisStyle.yAxis, minInterval: money ? undefined : 1 },
     series: [
-      {
-        name: t('tenant.reports.current'),
-        type: 'line',
-        smooth: true,
-        symbol: 'none',
-        lineStyle: { width: 3 },
-        areaStyle: { opacity: 0.14 },
-        data: now.map(show),
-      },
-      {
-        name: t('tenant.reports.previous'),
-        type: 'line',
-        smooth: true,
-        symbol: 'none',
-        lineStyle: { width: 2, type: 'dashed' },
-        data: before.map(show),
-      },
+      lineSeries(t('tenant.reports.current'), now.map(show), chartColors.amber, { area: true }),
+      lineSeries(t('tenant.reports.previous'), before.map(show), chartColors.stone, {
+        dashed: true,
+      }),
     ],
   };
 });
@@ -189,23 +170,20 @@ function download() {
 
 <template>
   <q-page padding>
-    <div class="q-mb-md">
-      <h1 class="text-h4 text-weight-bold q-my-none">{{ t('tenant.reports.title') }}</h1>
+    <div class="q-mb-lg">
+      <div class="ig-eyebrow q-mb-xs">{{ t('tenant.nav.reports') }}</div>
+      <h1 class="text-h4 q-my-none">{{ t('tenant.reports.title') }}</h1>
       <p class="ig-muted q-mt-sm q-mb-none">{{ t('tenant.reports.intro') }}</p>
     </div>
 
-    <!-- Controls: they scroll sideways on a phone instead of wrapping into a wall. -->
     <div class="ig-card q-pa-md q-mb-md">
-      <div class="row q-col-gutter-md items-center">
+      <div class="row q-col-gutter-md items-end">
         <div class="col-12 col-md-auto">
-          <div class="text-caption ig-muted q-mb-xs">{{ t('tenant.reports.range') }}</div>
+          <div class="ig-eyebrow q-mb-xs">{{ t('tenant.reports.range') }}</div>
           <div class="ig-scroll-x">
-            <q-btn-toggle
+            <IgSegmented
               v-model="preset"
-              no-caps
-              unelevated
-              toggle-color="accent"
-              toggle-text-color="dark"
+              :label="t('tenant.reports.range')"
               :options="[
                 { value: 7, label: t('tenant.overview.period.7') },
                 { value: 30, label: t('tenant.overview.period.30') },
@@ -216,11 +194,10 @@ function download() {
           </div>
         </div>
         <div class="col-12 col-sm-6 col-md-auto">
-          <q-btn
-            outline
-            no-caps
+          <IgButton
+            variant="secondary"
             icon="event"
-            class="full-width"
+            block
             :label="`${longDate(range.from)} – ${longDate(range.to)}`"
           >
             <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -237,20 +214,17 @@ function download() {
                 @update:model-value="pick"
               >
                 <div class="row justify-end">
-                  <q-btn v-close-popup flat no-caps :label="t('common.close')" />
+                  <IgButton v-close-popup variant="ghost" size="sm" :label="t('common.close')" />
                 </div>
               </q-date>
             </q-popup-proxy>
-          </q-btn>
+          </IgButton>
         </div>
         <div class="col-12 col-sm-6 col-md-auto">
-          <q-btn-toggle
+          <IgSegmented
             v-model="granularity"
-            no-caps
-            unelevated
-            toggle-color="accent"
-            toggle-text-color="dark"
-            class="full-width"
+            block
+            :label="t('tenant.reports.granularity.day')"
             :options="[
               { value: 'day', label: t('tenant.reports.granularity.day') },
               { value: 'week', label: t('tenant.reports.granularity.week') },
@@ -258,9 +232,8 @@ function download() {
           />
         </div>
         <div class="col-12 col-md text-md-right">
-          <q-btn
-            flat
-            no-caps
+          <IgButton
+            variant="ghost"
             icon="download"
             :disable="!current"
             :label="t('common.export')"
@@ -268,7 +241,7 @@ function download() {
           />
         </div>
       </div>
-      <div class="text-caption ig-muted q-mt-sm">
+      <div class="text-caption ig-muted q-mt-md">
         {{
           t('tenant.reports.comparing', {
             from: longDate(range.from),
@@ -278,25 +251,21 @@ function download() {
           })
         }}
       </div>
-      <div v-if="rangeError" class="text-negative text-caption q-mt-xs" role="alert">
-        {{ rangeError }}
-      </div>
+      <IgAlert v-if="rangeError" tone="error" class="q-mt-sm">{{ rangeError }}</IgAlert>
     </div>
 
-    <q-banner v-if="failed" rounded class="ig-card q-mb-md" role="alert">
+    <IgAlert v-if="failed" tone="error" class="q-mb-md">
       {{ t('common.loadError') }}
-      <template #action><q-btn flat no-caps :label="t('common.retry')" @click="load" /></template>
-    </q-banner>
+      <template #action>
+        <IgButton variant="ghost" size="sm" :label="t('common.retry')" @click="load" />
+      </template>
+    </IgAlert>
 
     <div class="ig-card q-pa-md q-mb-md">
-      <div class="ig-scroll-x q-mb-sm">
-        <q-btn-toggle
+      <div class="ig-scroll-x q-mb-md">
+        <IgSegmented
           v-model="metric"
-          no-caps
-          unelevated
-          dense
-          toggle-color="accent"
-          toggle-text-color="dark"
+          :label="t('tenant.reports.metric')"
           :options="metrics.map((m) => ({ value: m, label: labelOf(m) }))"
         />
       </div>
@@ -304,44 +273,38 @@ function download() {
       <EChart v-else :option="chartOption" :height="320" :label="labelOf(metric)" />
     </div>
 
-    <div class="ig-card">
-      <div class="text-subtitle1 text-weight-medium q-pa-md q-pb-sm">
-        {{ t('tenant.reports.table.title') }}
-      </div>
-      <q-list separator>
-        <q-item
-          v-for="r in rows"
-          :key="r.metric"
-          clickable
-          :active="metric === r.metric"
-          active-class="ig-selected"
-          @click="metric = r.metric"
-        >
-          <q-item-section>
-            <q-item-label>{{ labelOf(r.metric) }}</q-item-label>
-            <q-item-label caption
-              >{{ t('tenant.reports.previous') }}: {{ fmt(r.metric, r.before) }}</q-item-label
-            >
-          </q-item-section>
-          <q-item-section side>
-            <div class="text-subtitle1 text-weight-bold" style="font-variant-numeric: tabular-nums">
-              {{ fmt(r.metric, r.now) }}
-            </div>
-            <div
-              class="text-caption"
-              :class="
-                r.delta === null || r.delta === 0
-                  ? 'ig-muted'
-                  : r.delta > 0
-                    ? 'text-positive'
-                    : 'text-warning'
-              "
-            >
-              {{ formatChange(r.delta) }}
-            </div>
-          </q-item-section>
-        </q-item>
-      </q-list>
+    <div class="ig-card" style="overflow: hidden">
+      <div class="ig-section-title q-pa-md q-pb-sm">{{ t('tenant.reports.table.title') }}</div>
+      <button
+        v-for="r in rows"
+        :key="r.metric"
+        type="button"
+        class="ig-row"
+        :aria-current="metric === r.metric"
+        @click="metric = r.metric"
+      >
+        <div class="col">
+          <div class="text-weight-medium">{{ labelOf(r.metric) }}</div>
+          <div class="text-caption ig-muted">
+            {{ t('tenant.reports.previous') }}: {{ fmt(r.metric, r.before) }}
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-subtitle1 text-weight-bold ig-num">{{ fmt(r.metric, r.now) }}</div>
+          <span
+            class="ig-delta"
+            :class="
+              r.delta === null || r.delta === 0
+                ? 'ig-delta--flat'
+                : r.delta > 0
+                  ? 'ig-delta--good'
+                  : 'ig-delta--bad'
+            "
+          >
+            {{ formatChange(r.delta) }}
+          </span>
+        </div>
+      </button>
     </div>
   </q-page>
 </template>

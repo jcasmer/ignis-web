@@ -1,0 +1,148 @@
+// Cards: a flat surface with a hairline and a soft shadow. `--interactive` lifts on hover.
+.ig-card {
+  position: relative;
+  background: var(--ig-surface);
+  border: 1px solid var(--ig-line);
+  border-radius: var(--ig-r-md);
+  box-shadow: var(--ig-shadow-1);
+}
+
+.ig-card--raised {
+  box-shadow: var(--ig-shadow-2);
+}
+
+.ig-card--interactive {
+  transition:
+    transform 0.2s var(--ig-ease),
+    box-shadow 0.2s var(--ig-ease),
+    border-color 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ig-shadow-2);
+    border-color: var(--ig-line-strong);
+  }
+}
+
+.ig-section-title {
+  font-size: 0.95rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.ig-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ig-faint);
+}
+
+// A selected row: a quiet surface and an amber edge, in both themes.
+.ig-selected {
+  background: var(--ig-surface-2);
+  box-shadow: inset 3px 0 0 var(--ig-amber-500);
+}
+
+// Loading placeholders in the warm palette instead of Quasar's grey.
+.q-skeleton {
+  background: var(--ig-surface-2) !important;
+  border-radius: var(--ig-r-sm);
+
+  &::after {
+    background: linear-gradient(90deg, transparent, rgb(242 169 0 / 12%), transparent) !important;
+  }
+}
+
+// Empty states.
+.ig-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--ig-muted);
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    background: var(--ig-amber-100);
+    color: var(--ig-amber-700);
+  }
+}
+
+// Sign-in screens: a warm, quiet backdrop and a card that floats.
+.ig-auth {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+}
+
+.ig-auth__card {
+  width: 100%;
+  max-width: 432px;
+  padding: 36px 32px;
+  border-radius: var(--ig-r-lg);
+  box-shadow: var(--ig-shadow-3);
+}
+
+@media (max-width: 599px) {
+  .ig-auth__card {
+    padding: 28px 22px;
+  }
+}
+
+// The first moments of the app, while the session is being restored.
+.ig-splash {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--ig-page);
+}
+
+.ig-splash__mark {
+  animation: ig-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes ig-pulse {
+  50% {
+    opacity: 0.55;
+    transform: scale(0.97);
+  }
+}
+
+// Pages arrive with a short fade and rise.
+.ig-page-enter-active {
+  transition:
+    opacity 0.28s var(--ig-ease),
+    transform 0.28s var(--ig-ease);
+}
+
+.ig-page-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+// A row of controls that scrolls sideways on a phone instead of wrapping.
+.ig-scroll-x {
+  overflow-x: auto;
+  scrollbar-width: none;
+  max-width: 100%;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// Content stays readable on very wide screens.
+.q-page {
+  width: 100%;
+  max-width: 1320px;
+  margin-inline: auto;
+}

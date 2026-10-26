@@ -5,6 +5,8 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { useApiError } from '@/composables/useApiError';
 import { useSessionStore } from '@/stores/session';
+import IgButton from '@/components/IgButton.vue';
+import IgAlert from '@/components/IgAlert.vue';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -50,15 +52,9 @@ async function submit() {
       <h1 class="text-h5 text-weight-bold q-my-none">{{ t('auth.resetPage.title') }}</h1>
     </div>
 
-    <q-banner v-if="error" role="alert" rounded class="bg-negative text-white" dense>{{
-      error
-    }}</q-banner>
-    <q-banner v-if="done" role="status" rounded dense class="bg-positive text-white">{{
-      t('auth.resetPage.done')
-    }}</q-banner>
-    <q-banner v-else-if="!token" role="alert" rounded dense class="bg-negative text-white">{{
-      t('auth.resetPage.missing')
-    }}</q-banner>
+    <IgAlert v-if="error" tone="error">{{ error }}</IgAlert>
+    <IgAlert v-if="done" tone="success">{{ t('auth.resetPage.done') }}</IgAlert>
+    <IgAlert v-else-if="!token" tone="error">{{ t('auth.resetPage.missing') }}</IgAlert>
 
     <template v-if="!done && token">
       <q-input
@@ -78,26 +74,25 @@ async function submit() {
             class="cursor-pointer"
             role="button"
             tabindex="0"
+            :aria-label="reveal ? t('common.hide') : t('common.show')"
             @click="reveal = !reveal"
             @keyup.enter="reveal = !reveal"
           />
         </template>
       </q-input>
-      <q-btn
+      <IgButton
         type="submit"
-        class="ig-btn-primary full-width"
-        unelevated
-        no-caps
-        size="lg"
+        variant="primary"
+        block
         :label="t('auth.resetPage.save')"
         :loading="busy"
       />
     </template>
 
     <div class="text-center">
-      <router-link :to="`${prefix}/login`" class="text-caption">{{
-        done ? t('auth.signIn') : t('common.back')
-      }}</router-link>
+      <router-link :to="`${prefix}/login`" class="text-body2">
+        {{ done ? t('auth.signIn') : t('common.back') }}
+      </router-link>
     </div>
   </q-form>
 </template>

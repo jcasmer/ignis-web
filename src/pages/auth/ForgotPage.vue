@@ -5,6 +5,8 @@ import { useRoute } from 'vue-router';
 
 import { useApiError } from '@/composables/useApiError';
 import { useSessionStore } from '@/stores/session';
+import IgButton from '@/components/IgButton.vue';
+import IgAlert from '@/components/IgAlert.vue';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -42,12 +44,8 @@ async function submit() {
       <p class="ig-muted q-mt-xs q-mb-none">{{ t('auth.forgotPage.subtitle') }}</p>
     </div>
 
-    <q-banner v-if="error" role="alert" rounded class="bg-negative text-white" dense>{{
-      error
-    }}</q-banner>
-    <q-banner v-if="sent" role="status" rounded dense class="bg-positive text-white">{{
-      t('auth.forgotPage.sent')
-    }}</q-banner>
+    <IgAlert v-if="error" tone="error">{{ error }}</IgAlert>
+    <IgAlert v-if="sent" tone="success">{{ t('auth.forgotPage.sent') }}</IgAlert>
 
     <template v-if="!sent">
       <q-input
@@ -60,19 +58,17 @@ async function submit() {
         :rules="[emailRule]"
         lazy-rules="ondemand"
       />
-      <q-btn
+      <IgButton
         type="submit"
-        class="ig-btn-primary full-width"
-        unelevated
-        no-caps
-        size="lg"
+        variant="primary"
+        block
         :label="t('auth.forgotPage.send')"
         :loading="busy"
       />
     </template>
 
     <div class="text-center">
-      <router-link :to="`${prefix}/login`" class="text-caption">{{ t('common.back') }}</router-link>
+      <router-link :to="`${prefix}/login`" class="text-body2">{{ t('common.back') }}</router-link>
     </div>
   </q-form>
 </template>

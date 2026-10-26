@@ -25,7 +25,6 @@ export default defineConfig((ctx) => {
       // 'themify',
       // 'line-awesome',
 
-      'roboto-font', // optional, you are not bound to it
       'material-icons', // optional, you are not bound to it
     ],
 
@@ -110,7 +109,10 @@ export default defineConfig((ctx) => {
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
     framework: {
-      config: { dark: 'auto' },
+      config: {
+        dark: 'auto',
+        notify: { position: 'bottom', timeout: 3200, classes: 'ig-toast', progress: false },
+      },
 
       // iconSet: 'material-icons', // Quasar icon set
       lang: 'es',
