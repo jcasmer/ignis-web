@@ -21,6 +21,8 @@ interface NavItem {
   to: string;
   icon: string;
   label: string;
+  /** A heading shown in the sidebar before this entry. */
+  section?: string;
 }
 
 // Grows with each area of the console; every entry here is a real page.
@@ -36,8 +38,16 @@ const nav = computed<NavItem[]>(() =>
           ? [
               { to: '/app/reports', icon: 'insights', label: t('tenant.nav.reports') },
               { to: '/app/actions', icon: 'task_alt', label: t('tenant.nav.actions') },
-              { to: '/app/knowledge', icon: 'menu_book', label: t('tenant.nav.knowledge') },
+              {
+                to: '/app/knowledge',
+                icon: 'menu_book',
+                label: t('tenant.nav.knowledge'),
+                section: t('tenant.nav.manage'),
+              },
               { to: '/app/credits', icon: 'toll', label: t('tenant.nav.credits') },
+              { to: '/app/channels', icon: 'cell_tower', label: t('tenant.nav.channels') },
+              { to: '/app/mail', icon: 'mail_outline', label: t('tenant.nav.mail') },
+              { to: '/app/privacy', icon: 'shield', label: t('tenant.nav.privacy') },
             ]
           : []),
       ],
@@ -122,10 +132,13 @@ async function signOut() {
         <span v-if="area === 'ops'" class="ig-pill ig-pill--brand q-ml-sm">admin</span>
       </div>
       <nav class="ig-nav" :aria-label="t('common.menu')">
-        <router-link v-for="item in nav" :key="item.to" :to="item.to" class="ig-nav__item">
-          <q-icon :name="item.icon" />
-          <span>{{ item.label }}</span>
-        </router-link>
+        <template v-for="item in nav" :key="item.to">
+          <div v-if="item.section" class="ig-nav__label ig-eyebrow">{{ item.section }}</div>
+          <router-link :to="item.to" class="ig-nav__item">
+            <q-icon :name="item.icon" />
+            <span>{{ item.label }}</span>
+          </router-link>
+        </template>
       </nav>
     </q-drawer>
 
