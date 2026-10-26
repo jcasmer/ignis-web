@@ -1,5 +1,5 @@
 import type { Http } from './http';
-import type { CreditPackage, PendingAction } from './tenant';
+import type { Connector, ConnectorInput, CreditPackage, PendingAction } from './tenant';
 
 export interface TenantListItem {
   id: string;
@@ -237,6 +237,13 @@ export function opsApi(http: Http) {
     demoApprove: (id: string) => http.post<PendingAction>(`/ops/demo/actions/${t(id)}/approve`, {}),
     demoReject: (id: string) => http.post<void>(`/ops/demo/actions/${t(id)}/reject`, {}),
     demoRelease: (session: string) => http.post<void>('/ops/demo/release', { session }),
+
+    connectors: (id: string) =>
+      http.get<{ items: Connector[] }>(`/ops/tenants/${t(id)}/connectors`),
+    saveConnector: (id: string, name: string, body: ConnectorInput) =>
+      http.put<void>(`/ops/tenants/${t(id)}/connectors/${t(name)}`, body),
+    deleteConnector: (id: string, name: string) =>
+      http.del<void>(`/ops/tenants/${t(id)}/connectors/${t(name)}`),
 
     mail: (id: string) => http.get<MailInput>(`/ops/tenants/${t(id)}/mail`),
     saveMail: (id: string, body: MailInput) => http.put<void>(`/ops/tenants/${t(id)}/mail`, body),

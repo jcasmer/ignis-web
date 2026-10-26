@@ -184,6 +184,38 @@ export interface MailSettings {
   sent_today: number;
 }
 
+export type ConnectorAuthType = 'none' | 'bearer' | 'header' | 'basic';
+export type OperationMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+/** What an operation may do: read needs no confirmation; the others wait for a person. */
+export type OperationRisk = 'read' | 'write' | 'external';
+
+export interface ConnectorOperation {
+  name: string;
+  description: string;
+  method: OperationMethod;
+  path: string;
+  /** JSON Schema (type object) of the arguments. */
+  params: Record<string, unknown>;
+  risk?: OperationRisk;
+  response_fields?: string[];
+}
+
+export interface ConnectorInput {
+  description?: string;
+  base_url: string;
+  auth: { type: ConnectorAuthType; header?: string };
+  enabled?: boolean;
+  operations: ConnectorOperation[];
+  /** The credential: it goes out when it is set and never comes back. */
+  secret?: string;
+}
+
+export interface Connector extends Omit<ConnectorInput, 'secret'> {
+  name: string;
+  has_secret: boolean;
+  updated_at: string;
+}
+
 export interface Email {
   id: string;
   kind: 'business' | 'contact';
@@ -291,6 +323,7 @@ export function tenantApi(http: Http) {
       body: { external_account_id: string; access_token: string },
     ) => http.put<Channel>(`/channels/${channel}`, body),
 
+    connectors: () => http.get<{ items: Connector[] }>('/connectors'),
     mailSettings: () => http.get<MailSettings>('/mail'),
     mailOutbox: (limit = 50) => http.get<{ items: Email[] }>(`/mail/outbox${query({ limit })}`),
 

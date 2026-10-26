@@ -9,6 +9,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
 import IgSegmented from '@/components/IgSegmented.vue';
+import TenantConnectors from '@/components/TenantConnectors.vue';
 import { useSessionStore } from '@/stores/session';
 import { diffLimits, diffModules, usdToMicro } from '@/utils/plan';
 import { isEmail, isHttpsOrEmpty, parseRecipients } from '@/utils/validate';
@@ -26,8 +27,9 @@ const ent = ref<Entitlements | null>(null);
 const loading = ref(true);
 const failed = ref(false);
 const missing = ref(false);
-type Tab = 'plan' | 'security' | 'credits' | 'mail' | 'privacy';
+type Tab = 'plan' | 'security' | 'credits' | 'mail' | 'connectors' | 'privacy';
 const tab = ref<Tab>('plan');
+const connectorsSeen = ref(false);
 
 // --- load -------------------------------------------------------------------
 async function load() {
@@ -346,6 +348,7 @@ async function grant() {
 
 function onTab(v: Tab) {
   tab.value = v;
+  if (v === 'connectors') connectorsSeen.value = true;
   if (v === 'security' && !mfaLoaded.value) void loadSecurity();
   if (v === 'credits' && !statement.value) void loadStatement();
   if (v === 'mail' && !mailLoaded.value) void loadMail();
@@ -413,11 +416,15 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
             { value: 'security', label: t('admin.tenant.tabs.security') },
             { value: 'credits', label: t('admin.tenant.tabs.credits') },
             { value: 'mail', label: t('admin.tenant.tabs.mail') },
+            { value: 'connectors', label: t('admin.tenant.tabs.connectors') },
             { value: 'privacy', label: t('admin.tenant.tabs.privacy') },
           ]"
           @update:model-value="onTab"
         />
       </div>
+
+      <!-- Connectors: loaded when the tab is first opened and kept after that -->
+      <TenantConnectors v-if="connectorsSeen" v-show="tab === 'connectors'" :tenant-id="id" />
 
       <!-- Plan -->
       <div v-if="tab === 'plan' && ent" class="column q-gutter-y-md">
