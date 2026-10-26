@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { refreshOnFocus } from '@/composables/refreshOnFocus';
 import { useQuasar } from 'quasar';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -90,6 +91,7 @@ async function moreLedger() {
 }
 
 onMounted(load);
+refreshOnFocus(load);
 
 const soonest = computed(() => {
   const lots = (balance.value?.lots ?? []).filter((l) => l.remaining_micro > 0);

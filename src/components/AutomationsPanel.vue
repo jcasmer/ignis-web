@@ -12,6 +12,7 @@ import type {
 import type { Connector } from '@/api/tenant';
 import AutomationBuilder from '@/components/AutomationBuilder.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import { refreshOnFocus } from '@/composables/refreshOnFocus';
 import EmptyState from '@/components/EmptyState.vue';
 import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
@@ -60,6 +61,9 @@ async function load() {
   connectors.value = await props.loadConnectors().catch(() => []);
 }
 onMounted(load);
+
+// The plan can change from elsewhere (Ignis enables the module while this page is open).
+refreshOnFocus(load, 5_000);
 
 const shown = computed(() =>
   rules.value.filter((r) => (section.value === 'ai' ? usesAI(r) : !usesAI(r))),

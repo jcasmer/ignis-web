@@ -65,6 +65,7 @@ const capWarn = ref(80);
 const lowBalance = ref('0');
 const saving = ref(false);
 const confirmOpen = ref(false);
+const planVersion = ref(0);
 
 function resetPlan() {
   const e = ent.value;
@@ -159,6 +160,13 @@ async function savePlan() {
   saving.value = true;
   try {
     ent.value = await session.ops.patchEntitlements(id, planPatch.value);
+    // The tabs that depend on the modules loaded with the old plan: they load again.
+    planVersion.value++;
+    // What depends on the plan is read again the next time its tab opens.
+    mfaLoaded.value = false;
+    mailLoaded.value = false;
+    privacyLoaded.value = false;
+    statement.value = null;
     resetPlan();
     confirmOpen.value = false;
     $q.notify({ type: 'positive', message: t('admin.tenant.plan.saved') });
@@ -350,8 +358,15 @@ async function grant() {
 
 function onTab(v: Tab) {
   tab.value = v;
-  if (v === 'connectors') connectorsSeen.value = true;
-  if (v === 'automations') automationsSeen.value = true;
+  // Every time a data tab opens it asks again, so it never shows what was true before a change.
+  if (v === 'connectors') {
+    connectorsSeen.value = true;
+    planVersion.value++;
+  }
+  if (v === 'automations') {
+    automationsSeen.value = true;
+    planVersion.value++;
+  }
   if (v === 'security' && !mfaLoaded.value) void loadSecurity();
   if (v === 'credits' && !statement.value) void loadStatement();
   if (v === 'mail' && !mailLoaded.value) void loadMail();
@@ -428,11 +443,17 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
       </div>
 
       <!-- Connectors: loaded when the tab is first opened and kept after that -->
-      <TenantConnectors v-if="connectorsSeen" v-show="tab === 'connectors'" :tenant-id="id" />
+      <TenantConnectors
+        v-if="connectorsSeen"
+        :key="`c${planVersion}`"
+        v-show="tab === 'connectors'"
+        :tenant-id="id"
+      />
 
       <!-- Automations: loaded when the tab is first opened and kept after that -->
       <AutomationsPanel
         v-if="automationsSeen"
+        :key="`a${planVersion}`"
         v-show="tab === 'automations'"
         :client="session.ops.automationsOf(id)"
         :load-connectors="async () => (await session.ops.connectors(id)).items"
