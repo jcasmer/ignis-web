@@ -1,0 +1,68 @@
+import type { RouteRecordRaw } from 'vue-router';
+
+import type { Area } from '@/api/auth';
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    /** The area the page belongs to: who may see it. */
+    area?: Area;
+    /** A sign-in page: someone already signed in is sent home instead. */
+    guest?: boolean;
+  }
+}
+
+/** Where each area starts and signs in. */
+export const home: Record<Area, string> = { tenant: '/app', ops: '/admin' };
+export const loginOf: Record<Area, string> = { tenant: '/login', ops: '/admin/login' };
+
+function authPages(area: Area, prefix: string): RouteRecordRaw[] {
+  const meta = { area, guest: true };
+  return [
+    { path: `${prefix}login`, component: () => import('@/pages/auth/LoginPage.vue'), meta },
+    { path: `${prefix}code`, component: () => import('@/pages/auth/CodePage.vue'), meta },
+    { path: `${prefix}forgot`, component: () => import('@/pages/auth/ForgotPage.vue'), meta },
+    {
+      path: `${prefix}reset-password`,
+      // The emails link to /ops/reset-password for operators.
+      ...(area === 'ops' && { alias: '/ops/reset-password' }),
+      component: () => import('@/pages/auth/ResetPage.vue'),
+      meta,
+    },
+  ];
+}
+
+const routes: RouteRecordRaw[] = [
+  { path: '/', redirect: home.tenant },
+  {
+    path: '/',
+    component: () => import('@/layouts/AuthLayout.vue'),
+    children: [...authPages('tenant', '/'), ...authPages('ops', '/admin/')],
+  },
+  {
+    path: '/app',
+    component: () => import('@/layouts/ShellLayout.vue'),
+    meta: { area: 'tenant' },
+    children: [
+      {
+        path: '',
+        component: () => import('@/pages/tenant/OverviewPage.vue'),
+        meta: { area: 'tenant' },
+      },
+    ],
+  },
+  {
+    path: '/admin',
+    component: () => import('@/layouts/ShellLayout.vue'),
+    meta: { area: 'ops' },
+    children: [
+      {
+        path: '',
+        component: () => import('@/pages/admin/OverviewPage.vue'),
+        meta: { area: 'ops' },
+      },
+    ],
+  },
+  { path: '/:catchAll(.*)*', component: () => import('@/pages/ErrorNotFound.vue') },
+];
+
+export default routes;

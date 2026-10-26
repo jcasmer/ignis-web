@@ -1,0 +1,100 @@
+export default {
+  app: { name: 'Ignis' },
+  common: {
+    email: 'Correo electrónico',
+    password: 'Contraseña',
+    continue: 'Continuar',
+    back: 'Volver',
+    signOut: 'Cerrar sesión',
+    copy: 'Copiar',
+    copied: 'Copiado',
+    save: 'Guardar',
+    cancel: 'Cancelar',
+    theme: 'Cambiar tema',
+    soon: 'Próximamente',
+  },
+  auth: {
+    tenant: {
+      title: 'Bienvenido a Ignis',
+      subtitle: 'Ingresa a tu cuenta para ver tu negocio.',
+    },
+    ops: {
+      title: 'Consola de Ignis',
+      subtitle: 'Acceso solo para el equipo autorizado.',
+    },
+    signIn: 'Ingresar',
+    forgot: '¿Olvidaste tu contraseña?',
+    toAdmin: 'Acceso del equipo de Ignis',
+    toTenant: 'Acceso de clientes',
+    code: {
+      title: 'Verifica que eres tú',
+      subtitle: 'Escribe el código de 6 dígitos de tu app de autenticación.',
+      label: 'Código',
+      useRecovery: 'Usar un código de recuperación',
+      useApp: 'Usar el código de la app',
+      recoveryLabel: 'Código de recuperación',
+      expired: 'Tu ingreso venció. Empieza de nuevo.',
+    },
+    setup: {
+      title: 'Protege tu cuenta',
+      subtitle:
+        'Escanea el código con tu app de autenticación (Google Authenticator, Authy, 1Password…) y escribe el código que muestra.',
+      manual: 'O escribe esta clave a mano',
+      required: 'Tu organización exige un segundo factor para ingresar.',
+    },
+    recovery: {
+      title: 'Guarda tus códigos de recuperación',
+      body: 'Cada código sirve una sola vez si pierdes tu teléfono. Guárdalos en un lugar seguro: no volverán a mostrarse.',
+      saved: 'Ya los guardé',
+    },
+    forgotPage: {
+      title: 'Recupera tu contraseña',
+      subtitle: 'Te enviaremos un enlace para elegir una nueva.',
+      send: 'Enviar enlace',
+      sent: 'Si la cuenta existe, te enviamos un enlace. Revisa tu correo; vence en 30 minutos.',
+    },
+    resetPage: {
+      title: 'Elige una contraseña nueva',
+      newPassword: 'Contraseña nueva',
+      hint: 'Al menos 12 caracteres. Evita tu correo y claves comunes.',
+      save: 'Cambiar contraseña',
+      done: 'Contraseña cambiada. Ya puedes ingresar.',
+      missing: 'El enlace no es válido. Pide uno nuevo.',
+    },
+    errors: {
+      invalid: 'Correo o contraseña incorrectos.',
+      invalidCode: 'El código no es correcto.',
+      locked: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
+      network: 'No pudimos conectar con Ignis. Revisa tu conexión.',
+      generic: 'Algo salió mal. Inténtalo de nuevo.',
+      weakPassword: 'Esa contraseña no cumple los requisitos.',
+      required: 'Este campo es obligatorio.',
+      email: 'Escribe un correo válido.',
+      code: 'El código tiene 6 dígitos.',
+    },
+  },
+  tenant: {
+    overview: {
+      title: 'Resumen',
+      hello: 'Hola',
+      intro:
+        'Aquí verás cómo va tu negocio: conversaciones, ventas y lo que Ignis resolvió por ti.',
+      role: 'Tu rol',
+      placeholder: 'Tus estadísticas y reportes aparecerán aquí.',
+    },
+    roles: { owner: 'Dueño', admin: 'Administrador', agent: 'Agente', viewer: 'Visor' },
+    nav: { overview: 'Resumen' },
+  },
+  admin: {
+    overview: {
+      title: 'Panel de Ignis',
+      hello: 'Hola',
+      intro:
+        'Desde aquí gestionas clientes, módulos, límites, precios y el demo para vender Ignis.',
+      placeholder: 'Los clientes y la operación aparecerán aquí.',
+    },
+    roles: { super: 'Super admin', staff: 'Equipo' },
+    nav: { overview: 'Resumen' },
+  },
+  notFound: { title: 'No encontramos esa página', home: 'Ir al inicio' },
+};
