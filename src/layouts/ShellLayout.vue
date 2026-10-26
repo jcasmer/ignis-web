@@ -33,6 +33,7 @@ const nav = computed<NavItem[]>(() =>
         { to: '/admin/tenants', icon: 'domain', label: t('admin.nav.tenants') },
         { to: '/admin/demo', icon: 'play_circle', label: t('admin.nav.demo') },
         { to: '/admin/packages', icon: 'inventory_2', label: t('admin.nav.packages') },
+        { to: '/admin/prices', icon: 'sell', label: t('admin.nav.prices') },
         ...(session.operator?.role === 'super'
           ? [{ to: '/admin/operators', icon: 'groups', label: t('admin.nav.operators') }]
           : []),
