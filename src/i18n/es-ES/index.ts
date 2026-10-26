@@ -614,6 +614,43 @@ export default {
         fieldsHint:
           'Rutas con puntos, una por línea. Si lo dejas vacío se muestra toda la respuesta.',
         addOperation: 'Agregar operación',
+        import: {
+          open: 'Importar de OpenAPI',
+          title: 'Importar de un archivo OpenAPI',
+          hint: 'Lee un archivo OpenAPI 3 (JSON o YAML) y propone las operaciones. Revísalas antes de guardar.',
+          paste: 'Pega aquí el contenido del archivo',
+          file: 'Elegir archivo',
+          local: 'Se lee en tu navegador; no se envía a ningún lado.',
+          analyse: 'Analizar',
+          back: 'Volver',
+          untitled: 'Sin título',
+          server: 'Dirección del sistema: {url}',
+          noServer: 'El archivo no trae una dirección https absoluta: escríbela tú.',
+          found: 'Operaciones encontradas ({n})',
+          skipped: 'No se pudieron importar ({n})',
+          add: 'Agregar {n} operaciones',
+          added: 'Se agregaron {n} operaciones. Revisa el riesgo de cada una.',
+          simplified:
+            'Los argumentos solo admiten una parte de JSON Schema. Se dejaron abiertas estas palabras del archivo: {words}. El asistente podría enviar valores que el sistema rechace.',
+          review:
+            'Lo que no es GET queda como escritura y pide confirmación de una persona; cambia el riesgo si solo consulta.',
+          errors: {
+            empty: 'Pega el contenido del archivo o elige uno.',
+            tooBig: 'El archivo es demasiado grande (máximo 2 MB).',
+            syntax: 'No se pudo leer: no es un JSON ni un YAML válido.',
+            version: 'Solo se aceptan archivos OpenAPI 3 (el campo openapi debe empezar por 3).',
+            noPaths: 'El archivo no describe ninguna ruta.',
+          },
+          reasons: {
+            segment: 'un nombre de argumento tiene guiones u otro carácter no permitido',
+            headerParam: 'pide cabeceras o cookies, que un conector no envía',
+            body: 'su cuerpo no es un objeto',
+            collision: 'un argumento se repite entre la ruta, la consulta y el cuerpo',
+            tooBig: 'sus argumentos son demasiado grandes',
+            path: 'la ruta no es válida',
+            limit: 'un conector admite como máximo 50 operaciones',
+          },
+        },
         removeOperation: 'Quitar esta operación',
         inOperation: ' (operación {n}: {name})',
         errors: {

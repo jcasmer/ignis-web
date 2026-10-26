@@ -8,6 +8,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
+import OpenApiImport from '@/components/OpenApiImport.vue';
 import { useSessionStore } from '@/stores/session';
 import {
   AUTH_TYPES,
@@ -20,8 +21,11 @@ import {
   RISKS,
   toConnectorInput,
   toolName,
+  isDefaultBase,
   type ConnectorDraft,
+  type OperationDraft,
 } from '@/utils/connectors';
+import { isUntouched } from '@/utils/openapi';
 
 const props = defineProps<{ tenantId: string }>();
 
@@ -64,6 +68,33 @@ function start(c?: Connector) {
 function addOperation() {
   draft.value.operations.push(emptyOperation());
   openOp.value = draft.value.operations.length - 1;
+}
+
+// --- operations from an OpenAPI file ------------------------------------------------
+const importing = ref(false);
+
+function addImported(p: { baseUrl: string | null; operations: OperationDraft[] }) {
+  const d = draft.value;
+  // The empty operation the editor starts with makes room for the first imported one.
+  if (d.operations.length === 1 && d.operations[0] && isUntouched(d.operations[0])) {
+    d.operations = [];
+  }
+  const taken = new Set(d.operations.map((o) => o.name));
+  for (const op of p.operations) {
+    let name = op.name;
+    for (let i = 2; taken.has(name); i++) {
+      const suffix = `_${i}`;
+      name = op.name.slice(0, 40 - suffix.length) + suffix;
+    }
+    taken.add(name);
+    d.operations.push({ ...op, name });
+  }
+  if (p.baseUrl && isDefaultBase(d.baseUrl)) d.baseUrl = p.baseUrl;
+  openOp.value = Math.max(0, d.operations.length - p.operations.length);
+  $q.notify({
+    type: 'positive',
+    message: t('admin.tenant.connectors.import.added', { n: p.operations.length }),
+  });
 }
 
 function removeOperation(i: number) {
@@ -224,6 +255,8 @@ const mono =
       :cancel-label="t('common.cancel')"
       @confirm="remove"
     />
+
+    <OpenApiImport v-model="importing" @add="addImported" />
 
     <q-dialog v-model="editing" :persistent="saving" :maximized="$q.screen.lt.sm">
       <q-card
@@ -445,13 +478,22 @@ const mono =
                 </div>
               </q-expansion-item>
             </q-list>
-            <IgButton
-              variant="secondary"
-              size="sm"
-              icon="add"
-              :label="t('admin.tenant.connectors.addOperation')"
-              @click="addOperation"
-            />
+            <div class="row q-gutter-sm">
+              <IgButton
+                variant="secondary"
+                size="sm"
+                icon="add"
+                :label="t('admin.tenant.connectors.addOperation')"
+                @click="addOperation"
+              />
+              <IgButton
+                variant="secondary"
+                size="sm"
+                icon="upload_file"
+                :label="t('admin.tenant.connectors.import.open')"
+                @click="importing = true"
+              />
+            </div>
           </q-card-section>
 
           <q-card-actions align="right" class="q-pa-md q-gutter-x-sm">

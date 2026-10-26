@@ -30,6 +30,11 @@ const FORBIDDEN_HEADERS = [
 const PLACEHOLDER = /\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g;
 const FIELD_PATH = /^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*$/;
 
+/** The address the form starts with: nothing was typed yet, so an imported one may take its place. */
+export function isDefaultBase(baseUrl: string): boolean {
+  return baseUrl.trim() === 'https://' || baseUrl.trim() === '';
+}
+
 /** Without a stated risk a GET only reads and anything else changes something. */
 export function effectiveRisk(op: Pick<ConnectorOperation, 'method' | 'risk'>): OperationRisk {
   return op.risk ?? (op.method === 'GET' ? 'read' : 'write');
