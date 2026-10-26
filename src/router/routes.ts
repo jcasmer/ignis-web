@@ -1,6 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router';
 
-import type { Area } from '@/api/auth';
+import type { Area, TenantRole } from '@/api/auth';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -8,6 +8,8 @@ declare module 'vue-router' {
     area?: Area;
     /** A sign-in page: someone already signed in is sent home instead. */
     guest?: boolean;
+    /** The lowest tenant role that sees the page; the API enforces it too. */
+    minRole?: TenantRole;
   }
 }
 
@@ -47,6 +49,16 @@ const routes: RouteRecordRaw[] = [
         path: '',
         component: () => import('@/pages/tenant/OverviewPage.vue'),
         meta: { area: 'tenant' },
+      },
+      {
+        path: 'conversations',
+        component: () => import('@/pages/tenant/ConversationsPage.vue'),
+        meta: { area: 'tenant', minRole: 'agent' },
+      },
+      {
+        path: 'actions',
+        component: () => import('@/pages/tenant/ActionsPage.vue'),
+        meta: { area: 'tenant', minRole: 'admin' },
       },
     ],
   },

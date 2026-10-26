@@ -12,6 +12,7 @@ import {
   type TenantProfile,
 } from '@/api/auth';
 import { ApiError, createHttp } from '@/api/http';
+import { tenantApi } from '@/api/tenant';
 import { API_URL } from '@/config';
 
 /** Which area was last used. Not a secret: it only says where to try renewing. */
@@ -54,6 +55,7 @@ export const useSessionStore = defineStore('session', () => {
     renew: () => renew(),
   });
   const api = authApi(http);
+  const data = tenantApi(http);
 
   function rememberArea(a: Area | null) {
     try {
@@ -190,6 +192,7 @@ export const useSessionStore = defineStore('session', () => {
     pendingArea,
     recoveryCodes,
     api,
+    data,
     http,
     restore,
     signIn,

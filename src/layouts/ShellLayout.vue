@@ -7,6 +7,7 @@ import IgnisMark from '@/components/IgnisMark.vue';
 import { toggleTheme } from '@/composables/useTheme';
 import { loginOf } from '@/router/routes';
 import { useSessionStore } from '@/stores/session';
+import { atLeast } from '@/utils/roles';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -26,7 +27,15 @@ interface NavItem {
 const nav = computed<NavItem[]>(() =>
   area.value === 'ops'
     ? [{ to: '/admin', icon: 'space_dashboard', label: t('admin.nav.overview') }]
-    : [{ to: '/app', icon: 'space_dashboard', label: t('tenant.nav.overview') }],
+    : [
+        { to: '/app', icon: 'space_dashboard', label: t('tenant.nav.overview') },
+        ...(atLeast(session.tenant?.role, 'agent')
+          ? [{ to: '/app/conversations', icon: 'forum', label: t('tenant.nav.conversations') }]
+          : []),
+        ...(atLeast(session.tenant?.role, 'admin')
+          ? [{ to: '/app/actions', icon: 'task_alt', label: t('tenant.nav.actions') }]
+          : []),
+      ],
 );
 
 const who = computed(() =>
