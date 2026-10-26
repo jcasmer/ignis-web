@@ -118,6 +118,11 @@ const routes: RouteRecordRaw[] = [
         meta: { area: 'ops' },
       },
       {
+        path: 'prices',
+        component: () => import('@/pages/admin/ModelPricesPage.vue'),
+        meta: { area: 'ops' },
+      },
+      {
         path: 'operators',
         component: () => import('@/pages/admin/OperatorsPage.vue'),
         meta: { area: 'ops' },

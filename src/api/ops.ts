@@ -141,6 +141,22 @@ export interface NewPackage {
   currency: string;
 }
 
+/** A price of a model in micro-USD per million tokens. A change is a new one with a later date. */
+export interface ModelPrice {
+  provider: string;
+  model: string;
+  input_micro_per_mtok: number;
+  output_micro_per_mtok: number;
+  effective_from: string;
+  source_url: string;
+  verified_on: string;
+}
+
+export interface ModelPriceItem extends ModelPrice {
+  /** It is the one charged today. */
+  in_force: boolean;
+}
+
 export interface DemoStatus {
   ready: boolean;
   tenant_id?: string;
@@ -199,6 +215,12 @@ export function opsApi(http: Http) {
     createPackage: (p: NewPackage) => http.post<CreditPackage>('/ops/credit-packages', p),
     setPackageActive: (id: string, active: boolean) =>
       http.patch<void>(`/ops/credit-packages/${t(id)}`, { active }),
+
+    modelPrices: () => http.get<{ items: ModelPriceItem[] }>('/ops/model-prices'),
+    addModelPrice: (p: ModelPrice) =>
+      http.post<{ created: number }>('/ops/model-prices', { prices: [p] }),
+    seedModelPrices: () =>
+      http.post<{ created: number; skipped: number }>('/ops/model-prices/seed', {}),
 
     operators: () => http.get<{ items: Operator[] }>('/ops/operators'),
     inviteOperator: (b: { email: string; name: string; role: 'super' | 'staff' }) =>
