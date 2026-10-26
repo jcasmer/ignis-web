@@ -236,3 +236,124 @@
 body.body--dark .ig-package__credit {
   color: var(--ig-brand-300);
 }
+
+// The demo: the conversation of the prospect on a phone, and what happens inside.
+.ig-phone {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 400px;
+  height: min(680px, 78vh);
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 34px;
+  border: 8px solid var(--ig-ink);
+  background: var(--ig-surface);
+  box-shadow: var(--ig-shadow-3);
+
+  &__bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: linear-gradient(180deg, var(--ig-brand-600), var(--ig-brand-700));
+    color: var(--ig-on-brand);
+  }
+
+  &__body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
+    overflow-y: auto;
+    background: var(--ig-surface-2);
+  }
+
+  &__foot {
+    padding: 10px 12px;
+    background: var(--ig-surface);
+    border-top: 1px solid var(--ig-line);
+  }
+}
+
+@media (max-width: 599px) {
+  .ig-phone {
+    border-width: 4px;
+    border-radius: 24px;
+    height: min(640px, 72vh);
+  }
+}
+
+body.body--dark .ig-phone {
+  border-color: #05080f;
+}
+
+.ig-typing {
+  display: inline-flex;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border-bottom-left-radius: 6px;
+  background: var(--ig-surface);
+  border: 1px solid var(--ig-line);
+
+  span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ig-faint);
+    animation: ig-typing 1s infinite ease-in-out;
+
+    &:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+  }
+}
+
+@keyframes ig-typing {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+.ig-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--ig-line-strong);
+  border-radius: 999px;
+  background: var(--ig-surface);
+  color: var(--ig-text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 560;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    transform 0.15s var(--ig-ease);
+
+  &:hover {
+    border-color: var(--ig-brand-500);
+    background: var(--ig-brand-50);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}

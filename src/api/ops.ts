@@ -1,5 +1,5 @@
 import type { Http } from './http';
-import type { CreditPackage } from './tenant';
+import type { CreditPackage, PendingAction } from './tenant';
 
 export interface TenantListItem {
   id: string;
@@ -141,6 +141,31 @@ export interface NewPackage {
   currency: string;
 }
 
+export interface DemoStatus {
+  ready: boolean;
+  tenant_id?: string;
+  documents: number;
+  balance_micro: number;
+  daily_cap_micro: number;
+}
+
+export interface DemoMessage {
+  id: string;
+  /** `in` is what the presenter wrote; `out` is what the assistant answered. */
+  from: 'in' | 'out';
+  body: string;
+  state: 'received' | 'pending' | 'sent' | 'failed';
+  at: string;
+}
+
+export interface DemoThread {
+  messages: DemoMessage[];
+  /** The last message is the presenter's and has no answer yet. */
+  waiting: boolean;
+  handoff_active: boolean;
+  pending: PendingAction[];
+}
+
 function query(params: Record<string, string | number | undefined>): string {
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== '') q.set(k, String(v));
@@ -181,6 +206,16 @@ export function opsApi(http: Http) {
     setOperatorStatus: (id: string, status: 'active' | 'disabled') =>
       http.post<void>(`/ops/operators/${t(id)}/status`, { status }),
     resetOperatorMfa: (id: string) => http.post<void>(`/ops/operators/${t(id)}/reset-mfa`, {}),
+
+    demo: () => http.get<DemoStatus>('/ops/demo'),
+    demoSetup: () => http.post<DemoStatus>('/ops/demo/setup', {}),
+    demoSend: (session: string, text: string) =>
+      http.post<{ id: string }>('/ops/demo/messages', { session, text }),
+    demoThread: (session: string) =>
+      http.get<DemoThread>(`/ops/demo/messages${query({ session })}`),
+    demoApprove: (id: string) => http.post<PendingAction>(`/ops/demo/actions/${t(id)}/approve`, {}),
+    demoReject: (id: string) => http.post<void>(`/ops/demo/actions/${t(id)}/reject`, {}),
+    demoRelease: (session: string) => http.post<void>('/ops/demo/release', { session }),
 
     mail: (id: string) => http.get<MailInput>(`/ops/tenants/${t(id)}/mail`),
     saveMail: (id: string, body: MailInput) => http.put<void>(`/ops/tenants/${t(id)}/mail`, body),
