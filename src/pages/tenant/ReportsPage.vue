@@ -9,7 +9,7 @@ import IgButton from '@/components/IgButton.vue';
 import IgSegmented from '@/components/IgSegmented.vue';
 import { useSessionStore } from '@/stores/session';
 import { axisStyle, legendStyle, lineSeries } from '@/utils/chartTheme';
-import { chartColors } from '@/utils/palette';
+import { chartColors, metricColors } from '@/utils/palette';
 import {
   change,
   daysBefore,
@@ -105,6 +105,10 @@ const longDate = (iso: string) =>
     timeZone: 'UTC',
   }).format(new Date(`${iso}T00:00:00Z`));
 
+const metricOptions = computed(() =>
+  metrics.map((m) => ({ value: m, label: labelOf(m), color: metricColors[m] })),
+);
+
 const rows = computed(() =>
   metrics.map((m) => {
     const now = current.value?.totals[m] ?? 0;
@@ -121,6 +125,7 @@ const chartOption = computed(() => {
   const before = prev ? seriesValues(prev.series, metric.value) : [];
   const money = metric.value === 'charged_micro';
   const show = (v: number) => (money ? v / 1_000_000 : v);
+  const color = metricColors[metric.value];
   return {
     grid: { left: 8, right: 8, top: 40, bottom: 8, containLabel: true },
     legend: legendStyle,
@@ -130,7 +135,7 @@ const chartOption = computed(() => {
         const i = items[0]?.dataIndex ?? 0;
         const lines = [
           `<b>${labels[i] ?? ''}</b>`,
-          `<span style="color:${chartColors.brand}">●</span> ${t('tenant.reports.current')}: <b>${fmt(metric.value, now[i] ?? 0)}</b>`,
+          `<span style="color:${color}">●</span> ${t('tenant.reports.current')}: <b>${fmt(metric.value, now[i] ?? 0)}</b>`,
         ];
         const pp = prev?.series[i];
         if (pp) {
@@ -144,7 +149,7 @@ const chartOption = computed(() => {
     xAxis: { ...axisStyle.xAxis, boundaryGap: false, data: labels },
     yAxis: { ...axisStyle.yAxis, minInterval: money ? undefined : 1 },
     series: [
-      lineSeries(t('tenant.reports.current'), now.map(show), chartColors.brand, { area: true }),
+      lineSeries(t('tenant.reports.current'), now.map(show), color, { area: true }),
       lineSeries(t('tenant.reports.previous'), before.map(show), chartColors.stone, {
         dashed: true,
       }),
@@ -266,7 +271,7 @@ function download() {
         <IgSegmented
           v-model="metric"
           :label="t('tenant.reports.metric')"
-          :options="metrics.map((m) => ({ value: m, label: labelOf(m) }))"
+          :options="metricOptions"
         />
       </div>
       <q-skeleton v-if="loading && !current" height="320px" />

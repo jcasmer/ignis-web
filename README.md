@@ -38,6 +38,15 @@ En producción define `VITE_API_URL` con el origen de la API (por ejemplo `https
 - `public/_headers` trae la política de seguridad de contenido (CSP) y demás cabeceras para el hosting estático; ajusta `connect-src` al origen real de la API.
 - Rojo solo para errores: la paleta de marca es un teal profundo con arena, sobre neutros fríos (modo oscuro azulado).
 
+## Color en las gráficas
+
+Las reglas viven en `src/utils/palette.ts`:
+
+1. **Una métrica, un color, en todas partes.** Su tarjeta, su línea, sus barras y su fila en reportes usan el mismo (mensajes recibidos teal, enviados azul, conversaciones violeta, contactos nuevos verde, traspasos naranja, llamadas a la IA pizarra, costo dorado).
+2. **El teal de marca es la actividad principal**, no el color por defecto de todo.
+3. **Una comparación** dibuja la métrica en su color y el periodo anterior en piedra, punteado.
+4. **Nada rojo**: el rojo es de errores; el naranja es "ojo".
+
 ## Estructura
 
 ```

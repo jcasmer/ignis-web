@@ -80,6 +80,15 @@ body.body--dark .q-field--outlined.q-field--focused .q-field__label {
     }
   }
 
+  &__dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 8px;
+    border-radius: 50%;
+    vertical-align: 1px;
+  }
+
   &__opt {
     flex: 0 0 auto;
     min-height: 36px;

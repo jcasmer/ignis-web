@@ -10,7 +10,7 @@ import IgSegmented from '@/components/IgSegmented.vue';
 import StatCard from '@/components/StatCard.vue';
 import { useSessionStore } from '@/stores/session';
 import { axisStyle, barSeries, legendStyle, lineSeries } from '@/utils/chartTheme';
-import { chartColors, reasonColors } from '@/utils/palette';
+import { chartColors, metricColors, reasonColors } from '@/utils/palette';
 import { atLeast } from '@/utils/roles';
 import { change, daysBefore, formatNumber, toChart } from '@/utils/stats';
 
@@ -60,6 +60,7 @@ const sum = (a: number[], b: number[]) => a.map((v, i) => v + (b[i] ?? 0));
 
 interface Kpi {
   key: string;
+  color: string;
   icon: string;
   label: string;
   value: number;
@@ -77,6 +78,7 @@ const kpis = computed<Kpi[]>(() => {
   return [
     {
       key: 'messages',
+      color: chartColors.brand,
       icon: 'chat_bubble',
       label: t('tenant.overview.kpi.messages'),
       value: messages(c),
@@ -85,6 +87,7 @@ const kpis = computed<Kpi[]>(() => {
     },
     {
       key: 'conversations',
+      color: metricColors.conversations_active,
       icon: 'forum',
       label: t('tenant.overview.kpi.conversations'),
       value: c.conversations_active,
@@ -93,6 +96,7 @@ const kpis = computed<Kpi[]>(() => {
     },
     {
       key: 'contacts',
+      color: metricColors.new_contacts,
       icon: 'person_add',
       label: t('tenant.overview.kpi.contacts'),
       value: c.new_contacts,
@@ -101,6 +105,7 @@ const kpis = computed<Kpi[]>(() => {
     },
     {
       key: 'handoffs',
+      color: metricColors.handoffs,
       icon: 'support_agent',
       label: t('tenant.overview.kpi.handoffs'),
       value: c.handoffs,
@@ -110,6 +115,7 @@ const kpis = computed<Kpi[]>(() => {
     },
     {
       key: 'cost',
+      color: metricColors.charged_micro,
       icon: 'bolt',
       label: t('tenant.overview.kpi.cost'),
       value: c.charged_micro,
@@ -134,13 +140,13 @@ const activityOption = computed(() => ({
     lineSeries(
       t('tenant.overview.charts.received'),
       chart.value?.values.messages_in ?? [],
-      chartColors.brand,
+      metricColors.messages_in,
       { area: true },
     ),
     lineSeries(
       t('tenant.overview.charts.sent'),
       chart.value?.values.messages_out ?? [],
-      chartColors.sand,
+      metricColors.messages_out,
     ),
   ],
 }));
@@ -154,7 +160,7 @@ const conversationsOption = computed(() => ({
     barSeries(
       t('tenant.overview.charts.conversations'),
       chart.value?.values.conversations_active ?? [],
-      chartColors.brand,
+      metricColors.conversations_active,
     ),
   ],
 }));
@@ -200,7 +206,7 @@ const reasonsOption = computed(() => ({
       data: reasonEntries.value.map(([reason, value]) => ({
         name: t(`tenant.overview.reasons.${reason}`),
         value,
-        itemStyle: { color: reasonColors[reason] ?? chartColors.sand },
+        itemStyle: { color: reasonColors[reason] ?? chartColors.stone },
       })),
     },
   ],
@@ -248,6 +254,7 @@ const reasonsOption = computed(() => ({
           >
             <StatCard
               :icon="k.icon"
+              :color="k.color"
               :label="k.label"
               :value="k.value"
               :format="k.format"
@@ -294,7 +301,7 @@ const reasonsOption = computed(() => ({
                 <li v-for="[reason, n] in reasonEntries" :key="reason" class="ig-legend__row">
                   <span
                     class="ig-legend__dot"
-                    :style="{ background: reasonColors[reason] ?? chartColors.sand }"
+                    :style="{ background: reasonColors[reason] ?? chartColors.stone }"
                   />
                   <span>{{ t(`tenant.overview.reasons.${reason}`) }}</span>
                   <span class="ig-legend__value">{{ n }}</span>

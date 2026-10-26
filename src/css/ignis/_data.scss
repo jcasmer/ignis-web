@@ -21,8 +21,8 @@
     width: 34px;
     height: 34px;
     border-radius: 11px;
-    background: var(--ig-brand-100);
-    color: var(--ig-brand-700);
+    background: color-mix(in srgb, var(--kpi, var(--ig-brand-500)) 15%, transparent);
+    color: var(--kpi, var(--ig-brand-700));
 
     .q-icon {
       font-size: 1.15rem;
@@ -60,10 +60,6 @@
     height: 44px;
     opacity: 0.95;
   }
-}
-
-body.body--dark .ig-kpi__icon {
-  color: var(--ig-brand-300);
 }
 
 // Change vs. the previous period: green for good, orange for worse, never red.

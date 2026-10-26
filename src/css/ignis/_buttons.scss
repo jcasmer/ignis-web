@@ -18,6 +18,8 @@
 
   .q-btn__content {
     gap: 8px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
   }
 
   .q-icon {
