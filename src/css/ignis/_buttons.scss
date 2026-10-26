@@ -112,3 +112,14 @@
 .q-btn.ig-btn--block {
   width: 100%;
 }
+
+// A destructive confirmation: a quiet button whose label says what it will do.
+.q-btn.ig-btn--danger {
+  color: var(--ig-error);
+  border-color: color-mix(in srgb, var(--ig-error) 45%, transparent);
+
+  &:not(.disabled):hover {
+    background: var(--ig-error-bg);
+    border-color: var(--ig-error);
+  }
+}

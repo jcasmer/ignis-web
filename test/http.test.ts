@@ -102,3 +102,18 @@ describe('http client', () => {
     await expect(http.post('/auth/logout')).resolves.toBeUndefined();
   });
 });
+
+describe('http client uploads', () => {
+  it('sends a FormData as it is, without forcing a JSON content type', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(reply(202, { id: 'd1' }));
+    const http = createHttp({ baseUrl: '', getToken: () => 'tok', renew: never, fetchImpl });
+    const form = new FormData();
+    form.set('file', new Blob(['hola']), 'a.txt');
+
+    await http.post('/knowledge/documents', form);
+
+    const init = fetchImpl.mock.calls[0]![1] as RequestInit;
+    expect(init.body).toBe(form);
+    expect((init.headers as Record<string, string>)['Content-Type']).toBeUndefined();
+  });
+});

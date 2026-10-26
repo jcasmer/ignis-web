@@ -150,3 +150,50 @@
     }
   }
 }
+
+.ig-bottom-nav__more {
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+// The "More" sheet on a phone.
+.ig-sheet {
+  width: min(100vw, 520px);
+  padding: 8px 12px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 22px 22px 0 0;
+  background: var(--ig-surface);
+  border: 1px solid var(--ig-line);
+  box-shadow: var(--ig-shadow-3);
+
+  &__grip {
+    width: 40px;
+    height: 4px;
+    margin: 4px auto 12px;
+    border-radius: 4px;
+    background: var(--ig-line-strong);
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 52px;
+    padding: 0 14px;
+    border-radius: var(--ig-r-sm);
+    color: var(--ig-text);
+    font-weight: 600;
+    text-decoration: none;
+
+    .q-icon {
+      font-size: 1.4rem;
+      color: var(--ig-brand-600);
+    }
+
+    &:hover,
+    &.router-link-exact-active {
+      background: var(--ig-surface-2);
+    }
+  }
+}
