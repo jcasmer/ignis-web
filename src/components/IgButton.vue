@@ -14,6 +14,8 @@ const props = withDefaults(
     disable?: boolean;
     type?: 'button' | 'submit';
     to?: string;
+    /** An external link (the payment page): opened with no referrer and no opener. */
+    href?: string | undefined;
     ariaLabel?: string;
   }>(),
   { variant: 'secondary', size: 'md', type: 'button' },
@@ -38,6 +40,8 @@ const classes = computed(() => [
     :ripple="false"
     :type="type"
     :to="to"
+    :href="href"
+    :rel="href ? 'noopener noreferrer' : undefined"
     :icon="icon"
     :label="iconOnly ? undefined : label"
     :loading="loading"

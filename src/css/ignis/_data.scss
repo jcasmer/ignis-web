@@ -190,3 +190,49 @@
     opacity: 0.65;
   }
 }
+
+// The credit balance and its lots.
+.ig-balance {
+  padding: 24px;
+
+  &__value {
+    margin-top: 6px;
+    font-size: 2.6rem;
+    font-weight: 780;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+  }
+}
+
+.ig-lot + .ig-lot {
+  margin-top: 16px;
+}
+
+.ig-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--ig-surface-3);
+
+  &__fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.6s var(--ig-ease);
+  }
+}
+
+.ig-package {
+  height: 100%;
+
+  &__credit {
+    margin-top: 6px;
+    font-size: 2rem;
+    font-weight: 780;
+    letter-spacing: -0.03em;
+    color: var(--ig-brand-700);
+  }
+}
+
+body.body--dark .ig-package__credit {
+  color: var(--ig-brand-300);
+}

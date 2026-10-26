@@ -56,8 +56,11 @@ export function createHttp(options: HttpOptions): Http {
 
   async function send(method: string, path: string, opts: RequestOptions): Promise<Response> {
     const headers: Record<string, string> = { Accept: 'application/json' };
-    let body: string | undefined;
-    if (opts.body !== undefined) {
+    let body: string | FormData | undefined;
+    if (opts.body instanceof FormData) {
+      // The browser sets the multipart boundary itself.
+      body = opts.body;
+    } else if (opts.body !== undefined) {
       headers['Content-Type'] = 'application/json';
       body = JSON.stringify(opts.body);
     }

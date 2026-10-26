@@ -151,3 +151,56 @@
   max-width: 1320px;
   margin-inline: auto;
 }
+
+// A place to drop files: dashed, and it lights up under the file.
+.ig-drop {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 28px 20px;
+  text-align: center;
+  border: 2px dashed var(--ig-line-strong);
+  border-radius: var(--ig-r-md);
+  background: var(--ig-surface);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    transform 0.2s var(--ig-ease);
+
+  &:hover,
+  &--over {
+    border-color: var(--ig-brand-500);
+    background: var(--ig-brand-50);
+  }
+
+  &--over {
+    transform: scale(1.01);
+  }
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 4px;
+    border-radius: 16px;
+    background: var(--ig-brand-100);
+    color: var(--ig-brand-700);
+  }
+}
+
+body.body--dark .ig-drop__icon {
+  color: var(--ig-brand-300);
+}
+
+.ig-doc__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--ig-surface-2);
+  color: var(--ig-muted);
+}

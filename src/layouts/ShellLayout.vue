@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -36,6 +36,8 @@ const nav = computed<NavItem[]>(() =>
           ? [
               { to: '/app/reports', icon: 'insights', label: t('tenant.nav.reports') },
               { to: '/app/actions', icon: 'task_alt', label: t('tenant.nav.actions') },
+              { to: '/app/knowledge', icon: 'menu_book', label: t('tenant.nav.knowledge') },
+              { to: '/app/credits', icon: 'toll', label: t('tenant.nav.credits') },
             ]
           : []),
       ],
@@ -49,6 +51,15 @@ const who = computed(() => {
   const role = session.tenant?.role;
   return { name: role ? t(`tenant.roles.${role}`) : '', detail: t('app.name') };
 });
+// A phone's bottom bar fits four destinations and a "More" sheet for the rest.
+const MOBILE_SLOTS = 4;
+const mobileMain = computed(() =>
+  nav.value.length > 5 ? nav.value.slice(0, MOBILE_SLOTS) : nav.value,
+);
+const mobileMore = computed(() => (nav.value.length > 5 ? nav.value.slice(MOBILE_SLOTS) : []));
+const moreOpen = ref(false);
+const moreActive = computed(() => mobileMore.value.some((i) => i.to === route.path));
+
 const initial = computed(() => (who.value.name || 'I').charAt(0).toUpperCase());
 
 async function signOut() {
@@ -129,11 +140,42 @@ async function signOut() {
     <!-- On a phone the menu is at the thumb: a bottom bar instead of a drawer. -->
     <q-footer class="lt-md ig-bottom-nav">
       <nav class="ig-bottom-nav__list" :aria-label="t('common.menu')">
-        <router-link v-for="item in nav" :key="item.to" :to="item.to" class="ig-bottom-nav__item">
+        <router-link
+          v-for="item in mobileMain"
+          :key="item.to"
+          :to="item.to"
+          class="ig-bottom-nav__item"
+        >
           <q-icon :name="item.icon" />
           <span>{{ item.label }}</span>
         </router-link>
+        <button
+          v-if="mobileMore.length"
+          type="button"
+          class="ig-bottom-nav__item ig-bottom-nav__more"
+          :class="{ 'router-link-exact-active': moreActive }"
+          @click="moreOpen = true"
+        >
+          <q-icon name="grid_view" />
+          <span>{{ t('common.more') }}</span>
+        </button>
       </nav>
     </q-footer>
+
+    <q-dialog v-model="moreOpen" position="bottom">
+      <div class="ig-sheet">
+        <div class="ig-sheet__grip" />
+        <router-link
+          v-for="item in mobileMore"
+          :key="item.to"
+          :to="item.to"
+          class="ig-sheet__item"
+          @click="moreOpen = false"
+        >
+          <q-icon :name="item.icon" />
+          <span>{{ item.label }}</span>
+        </router-link>
+      </div>
+    </q-dialog>
   </q-layout>
 </template>
