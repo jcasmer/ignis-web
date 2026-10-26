@@ -11,6 +11,7 @@ import IgButton from '@/components/IgButton.vue';
 import IgSegmented from '@/components/IgSegmented.vue';
 import { useSessionStore } from '@/stores/session';
 import { diffLimits, diffModules, usdToMicro } from '@/utils/plan';
+import { isEmail, isHttpsOrEmpty, parseRecipients } from '@/utils/validate';
 import { daysBefore, formatMicroUsd } from '@/utils/stats';
 
 const { t } = useI18n();
@@ -25,7 +26,8 @@ const ent = ref<Entitlements | null>(null);
 const loading = ref(true);
 const failed = ref(false);
 const missing = ref(false);
-const tab = ref<'plan' | 'security' | 'credits'>('plan');
+type Tab = 'plan' | 'security' | 'credits' | 'mail' | 'privacy';
+const tab = ref<Tab>('plan');
 
 // --- load -------------------------------------------------------------------
 async function load() {
@@ -201,6 +203,85 @@ async function setMfa(v: boolean) {
   }
 }
 
+// --- mail ---------------------------------------------------------------------
+const mailLoaded = ref(false);
+const mailName = ref('');
+const mailText = ref('');
+const mailError = ref('');
+const mailSaving = ref(false);
+const mailList = computed(() => parseRecipients(mailText.value));
+
+async function loadMail() {
+  try {
+    const m = await session.ops.mail(id);
+    mailName.value = m.business_name;
+    mailText.value = m.recipients.join('\n');
+    mailLoaded.value = true;
+  } catch {
+    $q.notify({ type: 'negative', message: t('common.loadError') });
+  }
+}
+
+async function saveMail() {
+  mailError.value = '';
+  const bad = mailList.value.find((e) => !isEmail(e));
+  if (!mailName.value.trim()) return void (mailError.value = t('auth.errors.required'));
+  if (!mailList.value.length) return void (mailError.value = t('admin.tenant.mail.none'));
+  if (mailList.value.length > 5) return void (mailError.value = t('admin.tenant.mail.tooMany'));
+  if (bad) return void (mailError.value = t('admin.tenant.mail.invalidEmail', { email: bad }));
+  mailSaving.value = true;
+  try {
+    await session.ops.saveMail(id, {
+      business_name: mailName.value.trim(),
+      recipients: mailList.value,
+    });
+    $q.notify({ type: 'positive', message: t('admin.tenant.mail.saved') });
+  } catch {
+    mailError.value = t('common.loadError');
+  } finally {
+    mailSaving.value = false;
+  }
+}
+
+// --- privacy --------------------------------------------------------------------
+const privacyLoaded = ref(false);
+const pBusiness = ref('');
+const pNotice = ref('');
+const pPolicy = ref('');
+const pError = ref('');
+const pSaving = ref(false);
+
+async function loadPrivacy() {
+  try {
+    const p = await session.ops.privacy(id);
+    pBusiness.value = p.business_name;
+    pNotice.value = p.notice_text;
+    pPolicy.value = p.policy_url;
+    privacyLoaded.value = true;
+  } catch {
+    $q.notify({ type: 'negative', message: t('common.loadError') });
+  }
+}
+
+async function savePrivacy() {
+  pError.value = '';
+  if (!isHttpsOrEmpty(pPolicy.value))
+    return void (pError.value = t('admin.tenant.privacy.policyInvalid'));
+  pSaving.value = true;
+  try {
+    await session.ops.savePrivacy(id, {
+      business_name: pBusiness.value.trim(),
+      notice_text: pNotice.value,
+      policy_url: pPolicy.value.trim(),
+    });
+    $q.notify({ type: 'positive', message: t('admin.tenant.privacy.saved') });
+  } catch {
+    pError.value = t('common.loadError');
+  } finally {
+    pSaving.value = false;
+  }
+}
+
 // --- credits ----------------------------------------------------------------
 const statement = ref<Statement | null>(null);
 const stLoading = ref(false);
@@ -263,10 +344,12 @@ async function grant() {
   }
 }
 
-function onTab(v: 'plan' | 'security' | 'credits') {
+function onTab(v: Tab) {
   tab.value = v;
   if (v === 'security' && !mfaLoaded.value) void loadSecurity();
   if (v === 'credits' && !statement.value) void loadStatement();
+  if (v === 'mail' && !mailLoaded.value) void loadMail();
+  if (v === 'privacy' && !privacyLoaded.value) void loadPrivacy();
 }
 
 onMounted(load);
@@ -329,6 +412,8 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
             { value: 'plan', label: t('admin.tenant.tabs.plan') },
             { value: 'security', label: t('admin.tenant.tabs.security') },
             { value: 'credits', label: t('admin.tenant.tabs.credits') },
+            { value: 'mail', label: t('admin.tenant.tabs.mail') },
+            { value: 'privacy', label: t('admin.tenant.tabs.privacy') },
           ]"
           @update:model-value="onTab"
         />
@@ -453,6 +538,86 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
           <div class="text-caption ig-muted q-mt-sm">{{ t('admin.tenant.security.mfaHint') }}</div>
         </template>
       </div>
+
+      <!-- Mail -->
+      <q-form
+        v-else-if="tab === 'mail'"
+        class="ig-card q-pa-lg q-gutter-y-md"
+        @submit.prevent="saveMail"
+      >
+        <q-skeleton v-if="!mailLoaded" height="140px" />
+        <template v-else>
+          <IgAlert v-if="mailError" tone="error">{{ mailError }}</IgAlert>
+          <IgAlert v-else-if="!mailList.length" tone="warn">{{
+            t('admin.tenant.mail.notConfigured')
+          }}</IgAlert>
+          <q-input
+            v-model="mailName"
+            outlined
+            maxlength="80"
+            :label="t('admin.tenant.mail.business')"
+            :hint="t('admin.tenant.mail.businessHint')"
+          />
+          <q-input
+            v-model="mailText"
+            outlined
+            type="textarea"
+            autogrow
+            :label="t('admin.tenant.mail.recipients')"
+            :hint="t('admin.tenant.mail.recipientsHint')"
+          />
+          <div class="row justify-end">
+            <IgButton
+              type="submit"
+              variant="primary"
+              :loading="mailSaving"
+              :label="t('common.save')"
+            />
+          </div>
+        </template>
+      </q-form>
+
+      <!-- Privacy -->
+      <q-form
+        v-else-if="tab === 'privacy'"
+        class="ig-card q-pa-lg q-gutter-y-md"
+        @submit.prevent="savePrivacy"
+      >
+        <q-skeleton v-if="!privacyLoaded" height="200px" />
+        <template v-else>
+          <IgAlert v-if="pError" tone="error">{{ pError }}</IgAlert>
+          <q-input
+            v-model="pBusiness"
+            outlined
+            maxlength="80"
+            :label="t('admin.tenant.privacy.business')"
+          />
+          <q-input
+            v-model="pNotice"
+            outlined
+            type="textarea"
+            autogrow
+            maxlength="1500"
+            counter
+            :label="t('admin.tenant.privacy.notice')"
+            :hint="t('admin.tenant.privacy.noticeHint')"
+          />
+          <q-input
+            v-model="pPolicy"
+            outlined
+            inputmode="url"
+            :label="t('admin.tenant.privacy.policy')"
+          />
+          <div class="row justify-end">
+            <IgButton
+              type="submit"
+              variant="primary"
+              :loading="pSaving"
+              :label="t('common.save')"
+            />
+          </div>
+        </template>
+      </q-form>
 
       <!-- Credits -->
       <div v-else-if="tab === 'credits'" class="row q-col-gutter-md">
