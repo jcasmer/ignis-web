@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import type {
   AutomationActionType,
   AutomationInput,
+  ModelProvider,
   AutomationSampleEvent,
   AutomationTrace,
 } from '@/api/automations';
@@ -26,6 +27,8 @@ import {
 
 const props = defineProps<{
   connectors: Connector[];
+  models: string[];
+  providers: ModelProvider[];
   saving: boolean;
   /** Why the API refused the rule, when it did. */
   apiError: string;
@@ -234,6 +237,8 @@ function buildForTest(): { input?: AutomationInput; error?: string } {
               :steps="draft.steps"
               :trigger="draft.trigger"
               :connectors="connectors"
+              :models="models"
+              :providers="providers"
               :problem="problems.step[i]"
               :first="i === 0"
               :last="i === draft.steps.length - 1"

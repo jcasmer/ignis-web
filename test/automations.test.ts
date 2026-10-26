@@ -451,3 +451,21 @@ describe('what the form reads', () => {
     expect(emptyRule('ai').steps[0]?.type).toBe('ai_extract');
   });
 });
+
+describe('the model of a step', () => {
+  const aiRule = (model: string) =>
+    rule({
+      steps: [step('ai_analyze', { as: 'resumen', prompt: 'Resume la queja.', model })],
+    });
+
+  it('is sent when chosen and left out when the plan decides', () => {
+    expect(ok(aiRule('google:gemini-2.5-flash')).actions[0]?.model).toBe('google:gemini-2.5-flash');
+    expect(ok(aiRule('')).actions[0]).not.toHaveProperty('model');
+  });
+
+  it('comes back into the draft', () => {
+    const input = ok(aiRule('deepseek:deepseek-chat'));
+    const stored = { ...input, id: 'r1', version: 1 } as unknown as AutomationRule;
+    expect(ruleToDraft(stored).steps[0]?.model).toBe('deepseek:deepseek-chat');
+  });
+});

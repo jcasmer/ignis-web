@@ -94,6 +94,13 @@ export default {
       code: 'El código tiene 6 dígitos.',
     },
   },
+  models: {
+    provider: 'Proveedor de IA',
+    model: 'Modelo',
+    pickProviderFirst: 'Elige primero el proveedor.',
+    notConfigured: 'falta su clave en el servidor',
+    noPrice: 'falta un precio verificado',
+  },
   tenant: {
     overview: {
       title: 'Resumen',
@@ -383,6 +390,7 @@ export default {
         "Un nombre corto. Luego: {'{{vars.nombre}}'}, o {'{{vars.nombre.campo}}'} si extrae datos.",
       maxTokens: 'Largo máximo de la respuesta (opcional)',
       maxTokensHint: 'Entre 50 y 1500',
+      modelDefault: 'El del plan',
       fieldsAvailable: 'Puedes usar en los textos:',
       guard: {
         toggle: 'Ejecutar este paso solo si…',

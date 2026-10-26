@@ -1,3 +1,4 @@
+import type { ModelProvider } from '@/api/automations';
 import { automationsClient } from './automations';
 import type { Http } from './http';
 import type {
@@ -33,6 +34,7 @@ export interface CatalogModule {
 }
 
 export interface Catalog {
+  providers: ModelProvider[];
   models: { model: string; input_micro_per_mtok: number; output_micro_per_mtok: number }[];
   modules: CatalogModule[];
   core_limits: LimitDef[];
