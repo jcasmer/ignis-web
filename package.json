@@ -7,8 +7,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "lint": "prettier --write \"**/*.{js,ts,vue,css,scss,html,md,json}\" --ignore-path .gitignore && eslint --fix -c ./eslint.config.js \"./src*/**/*.{ts,js,cjs,mjs,vue}\"",
-    "lint:check": "prettier --check \"**/*.{js,ts,vue,css,scss,html,md,json}\" --ignore-path .gitignore && eslint -c ./eslint.config.js \"./src*/**/*.{ts,js,cjs,mjs,vue}\"",
+    "lint": "prettier --write \"**/*.{js,ts,vue,css,scss,html,md,json}\" --ignore-path .gitignore --ignore-path .prettierignore && eslint --fix -c ./eslint.config.js \"./src*/**/*.{ts,js,cjs,mjs,vue}\"",
+    "lint:check": "prettier --check \"**/*.{js,ts,vue,css,scss,html,md,json}\" --ignore-path .gitignore --ignore-path .prettierignore && eslint -c ./eslint.config.js \"./src*/**/*.{ts,js,cjs,mjs,vue}\"",
     "dev": "quasar dev",
     "build": "quasar build",
     "typecheck": "vue-tsc --noEmit",
@@ -17,6 +17,7 @@
     "audit": "npm audit --audit-level=high"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
     "@quasar/extras": "^2.1.0",
     "echarts": "^6.1.0",
     "pinia": "^4.0.2",

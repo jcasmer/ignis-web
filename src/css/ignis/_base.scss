@@ -1,0 +1,82 @@
+body {
+  overflow-x: hidden;
+  background: var(--ig-page);
+  color: var(--ig-text);
+  font-family: var(--ig-font);
+  font-feature-settings:
+    'cv11' 1,
+    'ss01' 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+// A warm wash behind the whole app, fixed so it does not scroll with the content.
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 480px at 8% -8%, rgb(242 169 0 / 10%), transparent 60%),
+    radial-gradient(700px 420px at 100% 0%, rgb(255 209 102 / 8%), transparent 60%);
+}
+
+h1,
+h2,
+h3,
+.text-h4,
+.text-h5,
+.text-h6 {
+  letter-spacing: -0.02em;
+}
+
+.text-h4 {
+  font-size: 1.85rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+a {
+  color: var(--ig-link);
+  text-underline-offset: 3px;
+}
+
+::selection {
+  background: rgb(242 169 0 / 35%);
+}
+
+// One focus ring for everything that can be reached with the keyboard.
+:focus-visible {
+  outline: none;
+  box-shadow: var(--ig-ring);
+  border-radius: var(--ig-r-sm);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ig-line-strong) transparent;
+}
+
+.ig-muted {
+  color: var(--ig-muted);
+}
+
+.ig-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.ig-code {
+  font-family: var(--ig-font-mono);
+  letter-spacing: 0.04em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -8,6 +8,8 @@ import QrCode from '@/components/QrCode.vue';
 import { useApiError } from '@/composables/useApiError';
 import { home } from '@/router/routes';
 import { useSessionStore } from '@/stores/session';
+import IgButton from '@/components/IgButton.vue';
+import IgAlert from '@/components/IgAlert.vue';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -72,9 +74,7 @@ async function submit() {
       </p>
     </div>
 
-    <q-banner v-if="error" role="alert" rounded class="bg-negative text-white" dense>{{
-      error
-    }}</q-banner>
+    <IgAlert v-if="error" tone="error">{{ error }}</IgAlert>
 
     <div v-if="setupMode && setup" class="column items-center q-gutter-y-sm">
       <QrCode :value="setup.uri" label="QR" />
@@ -109,31 +109,19 @@ async function submit() {
       lazy-rules="ondemand"
     />
 
-    <q-btn
-      type="submit"
-      class="ig-btn-primary full-width"
-      unelevated
-      no-caps
-      size="lg"
-      :label="t('common.continue')"
-      :loading="busy"
-    />
+    <IgButton type="submit" variant="primary" block :label="t('common.continue')" :loading="busy" />
 
     <div class="row justify-between items-center">
-      <q-btn
-        flat
-        no-caps
-        dense
+      <IgButton
+        variant="ghost"
         size="sm"
         icon="arrow_back"
         :label="t('common.back')"
         @click="restart"
       />
-      <q-btn
+      <IgButton
         v-if="!setupMode"
-        flat
-        no-caps
-        dense
+        variant="ghost"
         size="sm"
         :label="recovery ? t('auth.code.useApp') : t('auth.code.useRecovery')"
         @click="((recovery = !recovery), (code = ''))"

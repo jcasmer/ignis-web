@@ -1,17 +1,29 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, toRef } from 'vue';
 
-import { formatChange } from '@/utils/stats';
+import TrendLine from '@/components/TrendLine.vue';
+import { useCountUp } from '@/composables/useCountUp';
+import { formatChange, formatMicroUsd, formatNumber } from '@/utils/stats';
 
 const props = defineProps<{
   label: string;
-  value: string;
+  value: number;
+  /** How to write the figure: a count, or micro-dollars as money. */
+  format?: 'number' | 'usd' | undefined;
   /** Fraction against the previous period; null when there is none. */
   delta?: number | null;
   /** True when a rise is bad news (it is shown in amber, never red). */
-  lowerIsBetter?: boolean;
+  lowerIsBetter?: boolean | undefined;
   icon?: string;
+  spark?: number[];
+  compareLabel: string;
+  noCompareLabel: string;
 }>();
+
+const shown = useCountUp(toRef(props, 'value'));
+const text = computed(() =>
+  props.format === 'usd' ? formatMicroUsd(shown.value) : formatNumber(Math.round(shown.value)),
+);
 
 const trend = computed(() => {
   if (props.delta === null || props.delta === undefined || props.delta === 0) return 'flat';
@@ -19,36 +31,33 @@ const trend = computed(() => {
 });
 
 const tone = computed(() => {
-  if (trend.value === 'flat') return 'ig-muted';
+  if (trend.value === 'flat') return 'flat';
   const good = props.lowerIsBetter ? trend.value === 'down' : trend.value === 'up';
-  return good ? 'text-positive' : 'text-warning';
+  return good ? 'good' : 'bad';
 });
 </script>
 
 <template>
-  <div class="ig-card q-pa-md full-height">
-    <div class="row items-center no-wrap q-gutter-x-sm">
-      <q-icon v-if="icon" :name="icon" size="20px" style="color: var(--ig-amber-700)" />
-      <div class="text-caption ig-muted">{{ label }}</div>
+  <div class="ig-card ig-kpi">
+    <div class="ig-kpi__head">
+      <div v-if="icon" class="ig-kpi__icon"><q-icon :name="icon" /></div>
+      <div class="ig-kpi__label">{{ label }}</div>
     </div>
-    <div class="text-h4 text-weight-bold q-mt-xs" style="font-variant-numeric: tabular-nums">
-      {{ value }}
-    </div>
-    <div
-      v-if="delta !== undefined"
-      class="text-caption q-mt-xs row items-center"
-      :class="tone"
-      style="gap: 2px"
-    >
+    <div class="ig-kpi__value">{{ text }}</div>
+    <div v-if="delta !== undefined" class="ig-kpi__foot">
       <template v-if="delta !== null">
-        <q-icon
-          :name="trend === 'up' ? 'arrow_upward' : trend === 'down' ? 'arrow_downward' : 'remove'"
-          size="14px"
-        />
-        <span class="text-weight-medium">{{ formatChange(delta) }}</span>
-        <span class="ig-muted q-ml-xs">{{ $t('common.vsPrevious') }}</span>
+        <span class="ig-delta" :class="`ig-delta--${tone}`">
+          <q-icon
+            :name="trend === 'up' ? 'north_east' : trend === 'down' ? 'south_east' : 'remove'"
+          />
+          {{ formatChange(delta) }}
+        </span>
+        <span>{{ compareLabel }}</span>
       </template>
-      <span v-else class="ig-muted">{{ $t('common.noComparison') }}</span>
+      <span v-else>{{ noCompareLabel }}</span>
+    </div>
+    <div v-if="spark && spark.length > 1" class="ig-kpi__spark">
+      <TrendLine :values="spark" :label="label" />
     </div>
   </div>
 </template>

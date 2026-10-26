@@ -4,11 +4,15 @@ import { useI18n } from 'vue-i18n';
 
 import type { HandoffStats, StatsOverview } from '@/api/tenant';
 import EChart from '@/components/EChart.vue';
+import IgAlert from '@/components/IgAlert.vue';
+import IgButton from '@/components/IgButton.vue';
+import IgSegmented from '@/components/IgSegmented.vue';
 import StatCard from '@/components/StatCard.vue';
 import { useSessionStore } from '@/stores/session';
+import { axisStyle, barSeries, legendStyle, lineSeries } from '@/utils/chartTheme';
 import { chartColors, reasonColors } from '@/utils/palette';
 import { atLeast } from '@/utils/roles';
-import { change, daysBefore, formatMicroUsd, formatNumber, toChart } from '@/utils/stats';
+import { change, daysBefore, formatNumber, toChart } from '@/utils/stats';
 
 const { t } = useI18n();
 const session = useSessionStore();
@@ -49,72 +53,150 @@ watch(days, load);
 
 const totals = computed(() => stats.value?.totals);
 const previous = computed(() => stats.value?.previous);
+const chart = computed(() => (stats.value ? toChart(stats.value) : null));
 const messages = (x?: { messages_in: number; messages_out: number }) =>
   x ? x.messages_in + x.messages_out : 0;
+const sum = (a: number[], b: number[]) => a.map((v, i) => v + (b[i] ?? 0));
 
-const chart = computed(() => (stats.value ? toChart(stats.value) : null));
+interface Kpi {
+  key: string;
+  icon: string;
+  label: string;
+  value: number;
+  delta: number | null;
+  spark: number[];
+  format?: 'usd';
+  lowerIsBetter?: boolean;
+}
 
-const axis = {
-  axisLine: { lineStyle: { color: '#8884' } },
-  splitLine: { lineStyle: { color: '#8882' } },
-};
+const kpis = computed<Kpi[]>(() => {
+  const c = totals.value;
+  const p = previous.value;
+  const v = chart.value?.values;
+  if (!c || !p || !v) return [];
+  return [
+    {
+      key: 'messages',
+      icon: 'chat_bubble',
+      label: t('tenant.overview.kpi.messages'),
+      value: messages(c),
+      delta: change(messages(c), messages(p)),
+      spark: sum(v.messages_in, v.messages_out),
+    },
+    {
+      key: 'conversations',
+      icon: 'forum',
+      label: t('tenant.overview.kpi.conversations'),
+      value: c.conversations_active,
+      delta: change(c.conversations_active, p.conversations_active),
+      spark: v.conversations_active,
+    },
+    {
+      key: 'contacts',
+      icon: 'person_add',
+      label: t('tenant.overview.kpi.contacts'),
+      value: c.new_contacts,
+      delta: change(c.new_contacts, p.new_contacts),
+      spark: v.new_contacts,
+    },
+    {
+      key: 'handoffs',
+      icon: 'support_agent',
+      label: t('tenant.overview.kpi.handoffs'),
+      value: c.handoffs,
+      delta: change(c.handoffs, p.handoffs),
+      spark: v.handoffs,
+      lowerIsBetter: true,
+    },
+    {
+      key: 'cost',
+      icon: 'bolt',
+      label: t('tenant.overview.kpi.cost'),
+      value: c.charged_micro,
+      delta: change(c.charged_micro, p.charged_micro),
+      spark: v.charged_micro,
+      format: 'usd',
+      lowerIsBetter: true,
+    },
+  ];
+});
+
+const css = (name: string, fallback: string) =>
+  getComputedStyle(document.body).getPropertyValue(name).trim() || fallback;
 
 const activityOption = computed(() => ({
-  color: [chartColors.amber, chartColors.teal],
-  grid: { left: 40, right: 16, top: 36, bottom: 28 },
-  legend: { top: 0, textStyle: { color: 'inherit' } },
+  grid: { left: 8, right: 8, top: 40, bottom: 8, containLabel: true },
+  legend: legendStyle,
   tooltip: { trigger: 'axis' },
-  xAxis: { type: 'category', data: chart.value?.labels ?? [], boundaryGap: false, ...axis },
-  yAxis: { type: 'value', minInterval: 1, ...axis },
+  xAxis: { ...axisStyle.xAxis, boundaryGap: false, data: chart.value?.labels ?? [] },
+  yAxis: { ...axisStyle.yAxis, minInterval: 1 },
   series: [
-    {
-      name: t('tenant.overview.charts.received'),
-      type: 'line',
-      smooth: true,
-      symbol: 'none',
-      areaStyle: { opacity: 0.15 },
-      data: chart.value?.values.messages_in ?? [],
-    },
-    {
-      name: t('tenant.overview.charts.sent'),
-      type: 'line',
-      smooth: true,
-      symbol: 'none',
-      data: chart.value?.values.messages_out ?? [],
-    },
+    lineSeries(
+      t('tenant.overview.charts.received'),
+      chart.value?.values.messages_in ?? [],
+      chartColors.amber,
+      { area: true },
+    ),
+    lineSeries(
+      t('tenant.overview.charts.sent'),
+      chart.value?.values.messages_out ?? [],
+      chartColors.teal,
+    ),
   ],
 }));
 
 const conversationsOption = computed(() => ({
-  color: [chartColors.amber],
-  grid: { left: 40, right: 16, top: 16, bottom: 28 },
+  grid: { left: 8, right: 8, top: 16, bottom: 8, containLabel: true },
   tooltip: { trigger: 'axis' },
-  xAxis: { type: 'category', data: chart.value?.labels ?? [], ...axis },
-  yAxis: { type: 'value', minInterval: 1, ...axis },
+  xAxis: { ...axisStyle.xAxis, data: chart.value?.labels ?? [] },
+  yAxis: { ...axisStyle.yAxis, minInterval: 1 },
   series: [
-    {
-      name: t('tenant.overview.charts.conversations'),
-      type: 'bar',
-      barMaxWidth: 22,
-      itemStyle: { borderRadius: [4, 4, 0, 0] },
-      data: chart.value?.values.conversations_active ?? [],
-    },
+    barSeries(
+      t('tenant.overview.charts.conversations'),
+      chart.value?.values.conversations_active ?? [],
+      chartColors.amber,
+    ),
   ],
 }));
 
 const reasonEntries = computed(() =>
   Object.entries(handoffs.value?.by_reason ?? {}).filter(([, n]) => n > 0),
 );
+const reasonTotal = computed(() => reasonEntries.value.reduce((n, [, v]) => n + v, 0));
 
 const reasonsOption = computed(() => ({
   tooltip: { trigger: 'item' },
+  graphic: [
+    {
+      type: 'text',
+      left: 'center',
+      top: '38%',
+      style: {
+        text: formatNumber(reasonTotal.value),
+        fontSize: 30,
+        fontWeight: 750,
+        fill: css('--ig-text', '#1b1a17'),
+      },
+    },
+    {
+      type: 'text',
+      left: 'center',
+      top: '56%',
+      style: {
+        text: t('tenant.overview.charts.handoffUnit'),
+        fontSize: 12,
+        fill: css('--ig-muted', '#6b6558'),
+      },
+    },
+  ],
   series: [
     {
       type: 'pie',
-      radius: ['55%', '80%'],
-      avoidLabelOverlap: true,
-      itemStyle: { borderRadius: 6, borderColor: 'transparent', borderWidth: 2 },
+      radius: ['64%', '86%'],
+      padAngle: 3,
+      itemStyle: { borderRadius: 8 },
       label: { show: false },
+      emphasis: { scale: true, scaleSize: 4 },
       data: reasonEntries.value.map(([reason, value]) => ({
         name: t(`tenant.overview.reasons.${reason}`),
         value,
@@ -127,18 +209,16 @@ const reasonsOption = computed(() => ({
 
 <template>
   <q-page padding>
-    <div class="row items-center justify-between q-mb-lg q-col-gutter-md">
+    <div class="row items-end justify-between q-mb-lg q-col-gutter-md">
       <div class="col-12 col-sm">
-        <h1 class="text-h4 text-weight-bold q-my-none">{{ t('tenant.overview.title') }}</h1>
+        <div class="ig-eyebrow q-mb-xs">{{ t('app.name') }}</div>
+        <h1 class="text-h4 q-my-none">{{ t('tenant.overview.title') }}</h1>
         <p class="ig-muted q-mt-sm q-mb-none">{{ t('tenant.overview.intro') }}</p>
       </div>
-      <div v-if="canSeeStats" class="col-12 col-sm-auto">
-        <q-btn-toggle
+      <div v-if="canSeeStats" class="col-12 col-sm-auto ig-scroll-x">
+        <IgSegmented
           v-model="days"
-          no-caps
-          unelevated
-          toggle-color="accent"
-          toggle-text-color="dark"
+          :label="t('tenant.reports.range')"
           :options="
             ([7, 30, 90] as const).map((d) => ({
               value: d,
@@ -149,113 +229,91 @@ const reasonsOption = computed(() => ({
       </div>
     </div>
 
-    <div v-if="!canSeeStats" class="ig-card q-pa-lg ig-muted">
-      {{ t('tenant.overview.viewerNote') }}
-    </div>
+    <IgAlert v-if="!canSeeStats" tone="info">{{ t('tenant.overview.viewerNote') }}</IgAlert>
 
     <template v-else>
-      <q-banner v-if="failed" rounded class="ig-card q-mb-md" role="alert">
+      <IgAlert v-if="failed" tone="error" class="q-mb-md">
         {{ t('common.loadError') }}
-        <template #action><q-btn flat no-caps :label="t('common.retry')" @click="load" /></template>
-      </q-banner>
+        <template #action>
+          <IgButton variant="ghost" size="sm" :label="t('common.retry')" @click="load" />
+        </template>
+      </IgAlert>
 
       <div class="row q-col-gutter-md q-mb-md">
-        <div v-for="n in 5" :key="n" class="col-6 col-md-4 col-lg">
-          <template v-if="totals && previous">
+        <template v-if="kpis.length">
+          <div
+            v-for="(k, i) in kpis"
+            :key="k.key"
+            :class="i === 4 ? 'col-12 col-sm-6 col-md-4 col-lg' : 'col-6 col-md-4 col-lg'"
+          >
             <StatCard
-              v-if="n === 1"
-              icon="chat"
-              :label="t('tenant.overview.kpi.messages')"
-              :value="formatNumber(messages(totals))"
-              :delta="change(messages(totals), messages(previous))"
+              :icon="k.icon"
+              :label="k.label"
+              :value="k.value"
+              :format="k.format"
+              :delta="k.delta"
+              :lower-is-better="k.lowerIsBetter"
+              :spark="k.spark"
+              :compare-label="t('common.vsPrevious')"
+              :no-compare-label="t('common.noComparison')"
             />
-            <StatCard
-              v-else-if="n === 2"
-              icon="forum"
-              :label="t('tenant.overview.kpi.conversations')"
-              :value="formatNumber(totals.conversations_active)"
-              :delta="change(totals.conversations_active, previous.conversations_active)"
-            />
-            <StatCard
-              v-else-if="n === 3"
-              icon="person_add"
-              :label="t('tenant.overview.kpi.contacts')"
-              :value="formatNumber(totals.new_contacts)"
-              :delta="change(totals.new_contacts, previous.new_contacts)"
-            />
-            <StatCard
-              v-else-if="n === 4"
-              icon="support_agent"
-              lower-is-better
-              :label="t('tenant.overview.kpi.handoffs')"
-              :value="formatNumber(totals.handoffs)"
-              :delta="change(totals.handoffs, previous.handoffs)"
-            />
-            <StatCard
-              v-else
-              icon="bolt"
-              lower-is-better
-              :label="t('tenant.overview.kpi.cost')"
-              :value="formatMicroUsd(totals.charged_micro)"
-              :delta="change(totals.charged_micro, previous.charged_micro)"
-            />
-          </template>
-          <q-skeleton v-else height="110px" class="rounded-borders" />
-        </div>
+          </div>
+        </template>
+        <template v-else>
+          <div v-for="n in 5" :key="n" class="col-6 col-md-4 col-lg">
+            <q-skeleton height="150px" />
+          </div>
+        </template>
       </div>
 
       <div class="row q-col-gutter-md">
         <div class="col-12 col-lg-8">
-          <div class="ig-card q-pa-md">
-            <div class="text-subtitle1 text-weight-medium q-mb-sm">
-              {{ t('tenant.overview.charts.activity') }}
-            </div>
-            <q-skeleton v-if="loading && !stats" height="280px" />
-            <EChart v-else :option="activityOption" :label="t('tenant.overview.charts.activity')" />
+          <div class="ig-card q-pa-md full-height">
+            <div class="ig-section-title q-mb-sm">{{ t('tenant.overview.charts.activity') }}</div>
+            <q-skeleton v-if="loading && !stats" height="300px" />
+            <EChart
+              v-else
+              :option="activityOption"
+              :height="300"
+              :label="t('tenant.overview.charts.activity')"
+            />
           </div>
         </div>
         <div class="col-12 col-lg-4">
           <div class="ig-card q-pa-md full-height">
-            <div class="text-subtitle1 text-weight-medium q-mb-sm">
+            <div class="ig-section-title q-mb-sm">
               {{ t('tenant.overview.charts.handoffReasons') }}
             </div>
             <template v-if="reasonEntries.length">
               <EChart
                 :option="reasonsOption"
-                :height="200"
+                :height="210"
                 :label="t('tenant.overview.charts.handoffReasons')"
               />
-              <ul class="q-pl-none q-mb-none" style="list-style: none">
-                <li
-                  v-for="[reason, n] in reasonEntries"
-                  :key="reason"
-                  class="row items-center no-wrap q-mt-xs"
-                >
+              <ul class="ig-legend">
+                <li v-for="[reason, n] in reasonEntries" :key="reason" class="ig-legend__row">
                   <span
-                    class="q-mr-sm"
-                    :style="{
-                      background: reasonColors[reason] ?? chartColors.sand,
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                    }"
+                    class="ig-legend__dot"
+                    :style="{ background: reasonColors[reason] ?? chartColors.sand }"
                   />
-                  <span class="col text-body2">{{ t(`tenant.overview.reasons.${reason}`) }}</span>
-                  <span class="text-weight-medium">{{ n }}</span>
+                  <span>{{ t(`tenant.overview.reasons.${reason}`) }}</span>
+                  <span class="ig-legend__value">{{ n }}</span>
                 </li>
               </ul>
-              <div v-if="handoffs && handoffs.expired > 0" class="text-caption ig-muted q-mt-sm">
+              <div v-if="handoffs && handoffs.expired > 0" class="ig-pill ig-pill--ok q-mt-sm">
+                <q-icon name="auto_awesome" size="14px" />
                 {{ t('tenant.overview.charts.selfResolved') }}: {{ handoffs.expired }}
               </div>
             </template>
-            <div v-else class="ig-muted q-pa-md text-center">
-              {{ t('tenant.overview.charts.noHandoffs') }}
+            <div v-else class="ig-empty">
+              <div class="ig-empty__icon"><q-icon name="check_circle" size="26px" /></div>
+              <div>{{ t('tenant.overview.charts.noHandoffs') }}</div>
             </div>
           </div>
         </div>
         <div class="col-12">
           <div class="ig-card q-pa-md">
-            <div class="text-subtitle1 text-weight-medium q-mb-sm">
+            <div class="ig-section-title q-mb-sm">
               {{ t('tenant.overview.charts.conversations') }}
             </div>
             <q-skeleton v-if="loading && !stats" height="220px" />
