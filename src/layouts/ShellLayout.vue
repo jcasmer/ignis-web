@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -15,7 +15,6 @@ const router = useRouter();
 const session = useSessionStore();
 
 const area = computed(() => route.meta.area ?? 'tenant');
-const drawer = ref(false);
 
 interface NavItem {
   to: string;
@@ -33,7 +32,10 @@ const nav = computed<NavItem[]>(() =>
           ? [{ to: '/app/conversations', icon: 'forum', label: t('tenant.nav.conversations') }]
           : []),
         ...(atLeast(session.tenant?.role, 'admin')
-          ? [{ to: '/app/actions', icon: 'task_alt', label: t('tenant.nav.actions') }]
+          ? [
+              { to: '/app/actions', icon: 'task_alt', label: t('tenant.nav.actions') },
+              { to: '/app/reports', icon: 'insights', label: t('tenant.nav.reports') },
+            ]
           : []),
       ],
 );
@@ -52,19 +54,10 @@ async function signOut() {
 <template>
   <q-layout view="hHh LpR lFf">
     <q-header
-      class="bg-transparent text-inherit"
+      class="bg-transparent ig-header"
       style="border-bottom: 1px solid var(--ig-line); backdrop-filter: blur(8px)"
     >
       <q-toolbar>
-        <q-btn
-          flat
-          round
-          dense
-          icon="menu"
-          aria-label="Menu"
-          class="lt-md"
-          @click="drawer = !drawer"
-        />
         <IgnisMark :size="28" />
         <q-badge
           v-if="area === 'ops'"
@@ -86,14 +79,22 @@ async function signOut() {
           flat
           no-caps
           icon="logout"
-          :label="t('common.signOut')"
+          :label="$q.screen.gt.xs ? t('common.signOut') : undefined"
+          :aria-label="t('common.signOut')"
           class="q-ml-sm"
           @click="signOut"
         />
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="drawer" show-if-above :width="232" bordered class="bg-transparent">
+    <q-drawer
+      v-if="$q.screen.gt.sm"
+      :model-value="true"
+      persistent
+      :width="232"
+      bordered
+      class="bg-transparent"
+    >
       <q-list padding>
         <q-item
           v-for="item in nav"
@@ -114,5 +115,27 @@ async function signOut() {
     <q-page-container>
       <router-view />
     </q-page-container>
+
+    <!-- On a phone the menu is at the thumb: a bottom bar instead of a drawer. -->
+    <q-footer class="lt-md ig-bottom-nav">
+      <q-tabs
+        no-caps
+        dense
+        active-color="accent"
+        indicator-color="accent"
+        class="text-grey-5"
+        :aria-label="t('common.menu')"
+      >
+        <q-route-tab
+          v-for="item in nav"
+          :key="item.to"
+          :to="item.to"
+          exact
+          :icon="item.icon"
+          :label="item.label"
+          class="ig-bottom-nav__tab"
+        />
+      </q-tabs>
+    </q-footer>
   </q-layout>
 </template>

@@ -7,7 +7,10 @@ import {
   formatChange,
   formatMicroUsd,
   periodLabel,
+  previousWindow,
+  rangeDays,
   toChart,
+  toCsv,
 } from '@/utils/stats';
 
 describe('stats helpers', () => {
@@ -69,5 +72,76 @@ describe('roles', () => {
     expect(atLeast('agent', 'admin')).toBe(false);
     expect(atLeast('viewer', 'viewer')).toBe(true);
     expect(atLeast(null, 'viewer')).toBe(false);
+  });
+});
+
+describe('report helpers', () => {
+  it('counts the days of a range, both ends included', () => {
+    expect(rangeDays('2026-10-01', '2026-10-30')).toBe(30);
+    expect(rangeDays('2026-10-05', '2026-10-05')).toBe(1);
+    expect(rangeDays('2026-02-20', '2026-03-05')).toBe(14);
+  });
+
+  it('finds the window of the same length right before', () => {
+    expect(previousWindow('2026-10-01', '2026-10-30')).toEqual({
+      from: '2026-09-01',
+      to: '2026-09-30',
+    });
+    expect(previousWindow('2026-03-01', '2026-03-07')).toEqual({
+      from: '2026-02-22',
+      to: '2026-02-28',
+    });
+    expect(previousWindow('2026-10-05', '2026-10-05')).toEqual({
+      from: '2026-10-04',
+      to: '2026-10-04',
+    });
+  });
+
+  it('writes the series as CSV with the cost in dollars', () => {
+    const zero = {
+      messages_in: 0,
+      messages_out: 0,
+      conversations_active: 0,
+      new_contacts: 0,
+      handoffs: 0,
+      llm_calls: 0,
+      charged_micro: 0,
+    };
+    const headers = {
+      messages_in: 'Recibidos',
+      messages_out: 'Enviados',
+      conversations_active: 'Conversaciones',
+      new_contacts: 'Contactos',
+      handoffs: 'Traspasos',
+      llm_calls: 'Llamadas IA',
+      charged_micro: 'Costo USD',
+    };
+    const csv = toCsv(
+      [{ ...zero, period: '2026-10-01', messages_in: 4, charged_micro: 1_500_000 }],
+      headers,
+      'Periodo',
+    );
+    const lines = csv.split('\n');
+    expect(lines[0]).toBe(
+      'Periodo,Recibidos,Enviados,Conversaciones,Contactos,Traspasos,Llamadas IA,Costo USD',
+    );
+    expect(lines[1]).toBe('2026-10-01,4,0,0,0,0,0,1.5');
+  });
+
+  it('neutralises header text that a spreadsheet would run as a formula', () => {
+    const zero = {
+      messages_in: 0,
+      messages_out: 0,
+      conversations_active: 0,
+      new_contacts: 0,
+      handoffs: 0,
+      llm_calls: 0,
+      charged_micro: 0,
+    };
+    const headers = { ...zero, messages_in: '=HYPERLINK("x")' } as unknown as Record<
+      keyof typeof zero,
+      string
+    >;
+    expect(toCsv([], headers, 'P')).toContain('"\'=HYPERLINK(""x"")"');
   });
 });

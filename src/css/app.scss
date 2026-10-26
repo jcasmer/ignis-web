@@ -101,3 +101,71 @@ a {
 body.body--dark .q-field--outlined .q-field__control:before {
   border-color: #5a513f;
 }
+
+// Bottom navigation on phones, clear of the home indicator.
+.ig-bottom-nav {
+  background: var(--ig-surface);
+  border-top: 1px solid var(--ig-line);
+  padding-bottom: env(safe-area-inset-bottom);
+  color: var(--ig-text);
+}
+.ig-bottom-nav .q-tab {
+  min-height: 56px;
+  min-width: 64px;
+}
+
+// A selected row: a quiet surface and an amber edge, in both themes.
+.ig-selected {
+  background: var(--ig-surface-2);
+  box-shadow: inset 3px 0 0 var(--ig-amber-500);
+}
+
+// Touch targets of at least 44px on phones.
+@media (max-width: 599px) {
+  .q-btn:not(.q-btn--dense):not(.q-btn--round) {
+    min-height: 44px;
+  }
+}
+
+// A row of controls that scrolls sideways on a phone instead of wrapping.
+.ig-scroll-x {
+  overflow-x: auto;
+  scrollbar-width: none;
+  max-width: 100%;
+}
+.ig-scroll-x::-webkit-scrollbar {
+  display: none;
+}
+.ig-scroll-x .q-btn-group {
+  flex-wrap: nowrap;
+}
+
+// The first moments of the app, while the session is being restored.
+.ig-splash {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--ig-page);
+}
+.ig-splash__mark {
+  animation: ig-pulse 1.4s ease-in-out infinite;
+}
+@keyframes ig-pulse {
+  50% {
+    opacity: 0.55;
+    transform: scale(0.97);
+  }
+}
+.ig-scroll-x .q-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.ig-scroll-x .q-btn__content {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.ig-header {
+  color: var(--ig-text);
+}

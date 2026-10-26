@@ -140,7 +140,7 @@ onMounted(() => {
               :key="c.id"
               clickable
               :active="selected?.id === c.id"
-              active-class="bg-amber-1 text-dark"
+              active-class="ig-selected"
               @click="open(c)"
             >
               <q-item-section avatar>

@@ -69,3 +69,51 @@ export function daysBefore(from: Date, n: number): string {
   const d = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate() - n));
   return d.toISOString().slice(0, 10);
 }
+
+const DAY_MS = 86_400_000;
+
+const toDate = (iso: string) => new Date(`${iso}T00:00:00Z`);
+const toIso = (d: Date) => d.toISOString().slice(0, 10);
+
+/** Number of days in an inclusive range of ISO dates. */
+export function rangeDays(from: string, to: string): number {
+  return Math.round((toDate(to).getTime() - toDate(from).getTime()) / DAY_MS) + 1;
+}
+
+/** The window of the same length that ends the day before `from`. */
+export function previousWindow(from: string, to: string): { from: string; to: string } {
+  const n = rangeDays(from, to);
+  const end = new Date(toDate(from).getTime() - DAY_MS);
+  const start = new Date(end.getTime() - (n - 1) * DAY_MS);
+  return { from: toIso(start), to: toIso(end) };
+}
+
+/** One value per metric for a point of the series, in the order of `metrics`. */
+export function seriesValues(series: StatsPoint[], metric: Metric): number[] {
+  return series.map((p) => p[metric]);
+}
+
+const csvCell = (v: string | number): string => {
+  const s = String(v);
+  // A cell that starts like a formula is neutralised so a spreadsheet does not run it.
+  const safe = /^[=+\-@\t\r]/.test(s) && typeof v === 'string' ? `'${s}` : s;
+  return /[",\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+};
+
+/** The series as CSV: one row per period, one column per metric. */
+export function toCsv(
+  series: StatsPoint[],
+  headers: Record<Metric, string>,
+  periodHeader: string,
+): string {
+  const metrics = Object.keys(headers) as Metric[];
+  const lines = [[periodHeader, ...metrics.map((m) => headers[m])].map(csvCell).join(',')];
+  for (const p of series) {
+    lines.push(
+      [p.period, ...metrics.map((m) => (m === 'charged_micro' ? p[m] / 1_000_000 : p[m]))]
+        .map(csvCell)
+        .join(','),
+    );
+  }
+  return lines.join('\n') + '\n';
+}

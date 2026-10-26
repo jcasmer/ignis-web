@@ -62,7 +62,7 @@ const axis = {
 const activityOption = computed(() => ({
   color: [chartColors.amber, chartColors.teal],
   grid: { left: 40, right: 16, top: 36, bottom: 28 },
-  legend: { top: 0, textStyle: { color: 'inherit' } },
+  legend: { top: 0 },
   tooltip: { trigger: 'axis' },
   xAxis: { type: 'category', data: chart.value?.labels ?? [], boundaryGap: false, ...axis },
   yAxis: { type: 'value', minInterval: 1, ...axis },
@@ -160,7 +160,11 @@ const reasonsOption = computed(() => ({
       </q-banner>
 
       <div class="row q-col-gutter-md q-mb-md">
-        <div v-for="n in 5" :key="n" class="col-6 col-md-4 col-lg">
+        <div
+          v-for="n in 5"
+          :key="n"
+          :class="n === 5 ? 'col-12 col-sm-6 col-md-4 col-lg' : 'col-6 col-md-4 col-lg'"
+        >
           <template v-if="totals && previous">
             <StatCard
               v-if="n === 1"
