@@ -27,6 +27,7 @@ body.body--dark {
 }
 
 body {
+  overflow-x: hidden;
   background: var(--ig-page);
   color: var(--ig-text);
   font-family: 'Inter', 'Roboto', system-ui, sans-serif;

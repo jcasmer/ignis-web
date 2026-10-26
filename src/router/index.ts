@@ -7,6 +7,7 @@ import {
 } from 'vue-router';
 
 import { useSessionStore } from '@/stores/session';
+import { atLeast } from '@/utils/roles';
 
 import routes, { home, loginOf } from './routes';
 
@@ -41,6 +42,10 @@ export default defineRouter(({ store }) => {
     if (!session.signedIn) return { path: loginOf[area], replace: true };
     // Each area keeps to itself: a tenant user is not an operator, nor the reverse.
     if (session.area !== area) return { path: home[session.area!], replace: true };
+    // A page above the user's role is not shown; the API would refuse it anyway.
+    if (to.meta.minRole && !atLeast(session.tenant?.role, to.meta.minRole)) {
+      return { path: home[area], replace: true };
+    }
     return true;
   });
 

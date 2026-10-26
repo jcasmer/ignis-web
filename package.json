@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@quasar/extras": "^2.1.0",
+    "echarts": "^6.1.0",
     "pinia": "^4.0.2",
     "qrcode": "^1.5.4",
     "quasar": "^2.35.2",
