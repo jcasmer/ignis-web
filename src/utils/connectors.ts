@@ -35,6 +35,34 @@ export function isDefaultBase(baseUrl: string): boolean {
   return baseUrl.trim() === 'https://' || baseUrl.trim() === '';
 }
 
+/** A starting value for an argument of the given schema, so the test is one edit away. */
+function sample(schema: unknown): unknown {
+  const s =
+    schema !== null && typeof schema === 'object' ? (schema as Record<string, unknown>) : {};
+  const type = Array.isArray(s.type) ? s.type[0] : s.type;
+  if (Array.isArray(s.enum) && s.enum.length) return s.enum[0];
+  if (type === 'integer' || type === 'number') return typeof s.minimum === 'number' ? s.minimum : 0;
+  if (type === 'boolean') return false;
+  if (type === 'array') return [];
+  if (type === 'object') return {};
+  if (s.format === 'date') return new Date().toISOString().slice(0, 10);
+  return '';
+}
+
+/** The arguments of an operation as JSON text with its required fields to fill in. */
+export function argumentsTemplate(params: Record<string, unknown>): string {
+  const properties =
+    params.properties !== null && typeof params.properties === 'object'
+      ? (params.properties as Record<string, unknown>)
+      : {};
+  const required = Array.isArray(params.required) ? params.required : [];
+  const args: Record<string, unknown> = {};
+  for (const name of required) {
+    if (typeof name === 'string') args[name] = sample(properties[name]);
+  }
+  return JSON.stringify(args, null, 2);
+}
+
 /** Without a stated risk a GET only reads and anything else changes something. */
 export function effectiveRisk(op: Pick<ConnectorOperation, 'method' | 'risk'>): OperationRisk {
   return op.risk ?? (op.method === 'GET' ? 'read' : 'write');
@@ -249,4 +277,26 @@ export function toConnectorInput(d: ConnectorDraft): ConnectorResult {
       ...(d.authType !== 'none' && d.secret.trim() && { secret: d.secret.trim() }),
     },
   };
+}
+
+/**
+ * The reason a test failed, in Spanish when it is one of the fixed messages of the API.
+ * What the client's own system said (the detail after a status) is shown as it came.
+ */
+export function failureText(message: string): string {
+  const m = message.trim();
+  if (/could not be reached/i.test(m)) {
+    return 'No se pudo conectar con el sistema. Revisa la dirección y que esté disponible desde internet.';
+  }
+  if (/refused the credentials/i.test(m)) return 'El sistema rechazó la credencial del conector.';
+  if (/no credentials configured/i.test(m)) return 'El conector no tiene una credencial guardada.';
+  if (/redirected the call/i.test(m))
+    return 'El sistema redirigió la llamada, y eso no está permitido.';
+  if (/too large/i.test(m))
+    return 'La respuesta del sistema es demasiado grande: pide menos datos.';
+  const later = /^the system answered (\d{3}); try again later/i.exec(m);
+  if (later) return `El sistema respondió ${later[1]}. Inténtalo más tarde.`;
+  const detail = /^the system answered (\d{3}): ([\s\S]*)$/i.exec(m);
+  if (detail) return `El sistema respondió ${detail[1]}: ${detail[2]}`;
+  return m;
 }

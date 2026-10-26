@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import type { Connector } from '@/api/tenant';
 import {
+  argumentsTemplate,
   draftFromConnector,
   effectiveRisk,
   emptyConnector,
   emptyOperation,
+  failureText,
   hostOf,
   isDefaultBase,
   toConnectorInput,
@@ -151,6 +153,51 @@ describe('the form of a stored connector', () => {
     if (!r.ok) return;
     expect(r.input.operations).toEqual(stored.operations);
     expect(r.input).not.toHaveProperty('secret');
+  });
+});
+
+describe('argumentsTemplate', () => {
+  it('offers the required arguments with a value of the right type', () => {
+    const text = argumentsTemplate({
+      type: 'object',
+      required: ['id', 'count', 'when', 'flag', 'tags', 'kind'],
+      properties: {
+        id: { type: 'string' },
+        count: { type: 'integer', minimum: 1 },
+        when: { type: 'string', format: 'date' },
+        flag: { type: 'boolean' },
+        tags: { type: 'array' },
+        kind: { type: 'string', enum: ['a', 'b'] },
+        optional: { type: 'string' },
+      },
+    });
+    const args = JSON.parse(text);
+    expect(Object.keys(args)).toEqual(['id', 'count', 'when', 'flag', 'tags', 'kind']);
+    expect(args).toMatchObject({ id: '', count: 1, flag: false, tags: [], kind: 'a' });
+    expect(args.when).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('is an empty object when nothing is required', () => {
+    expect(argumentsTemplate({ type: 'object', properties: { q: { type: 'string' } } })).toBe('{}');
+  });
+});
+
+describe('failureText', () => {
+  it.each([
+    ['the system could not be reached', /No se pudo conectar/],
+    ['the system refused the credentials of the connector', /rechazó la credencial/],
+    ['the connector has no credentials configured', /no tiene una credencial/],
+    ['the system redirected the call, which is not allowed', /redirigió/],
+    ['the system answered 503; try again later', /respondió 503. Inténtalo más tarde/],
+  ])('translates %s', (message, expected) => {
+    expect(failureText(message)).toMatch(expected);
+  });
+
+  it('keeps what the client system said, word for word', () => {
+    expect(failureText('the system answered 404: {"error":"No such customer"}')).toBe(
+      'El sistema respondió 404: {"error":"No such customer"}',
+    );
+    expect(failureText('something else')).toBe('something else');
   });
 });
 

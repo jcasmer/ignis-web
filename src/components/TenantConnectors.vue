@@ -8,6 +8,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
+import ConnectorTest from '@/components/ConnectorTest.vue';
 import OpenApiImport from '@/components/OpenApiImport.vue';
 import { useSessionStore } from '@/stores/session';
 import {
@@ -130,6 +131,17 @@ async function save() {
   }
 }
 
+// --- testing an operation that reads -------------------------------------------------
+const testing = ref<{ connector: Connector; operation: Connector['operations'][number] } | null>(
+  null,
+);
+const testOpen = computed({
+  get: () => testing.value !== null,
+  set: (v) => {
+    if (!v) testing.value = null;
+  },
+});
+
 // --- removing ------------------------------------------------------------------------
 const removing = ref<Connector | null>(null);
 const confirmOpen = computed({
@@ -217,6 +229,15 @@ const mono =
             {{ o.method }}
           </span>
           <span class="col ellipsis">{{ toolName(c.name, o.name) }}</span>
+          <IgButton
+            v-if="effectiveRisk(o) === 'read'"
+            variant="ghost"
+            size="sm"
+            icon="play_arrow"
+            class="q-mr-sm"
+            :label="t('admin.tenant.connectors.test.open')"
+            @click="testing = { connector: c, operation: o }"
+          />
           <span
             class="ig-pill"
             :class="effectiveRisk(o) === 'read' ? 'ig-pill--ok' : 'ig-pill--warn'"
@@ -257,6 +278,13 @@ const mono =
     />
 
     <OpenApiImport v-model="importing" @add="addImported" />
+    <ConnectorTest
+      v-if="testing"
+      v-model="testOpen"
+      :tenant-id="tenantId"
+      :connector="testing.connector"
+      :operation="testing.operation"
+    />
 
     <q-dialog v-model="editing" :persistent="saving" :maximized="$q.screen.lt.sm">
       <q-card

@@ -1,5 +1,11 @@
 import type { Http } from './http';
-import type { Connector, ConnectorInput, CreditPackage, PendingAction } from './tenant';
+import type {
+  Connector,
+  ConnectorInput,
+  ConnectorTestResult,
+  CreditPackage,
+  PendingAction,
+} from './tenant';
 
 export interface TenantListItem {
   id: string;
@@ -242,6 +248,8 @@ export function opsApi(http: Http) {
       http.get<{ items: Connector[] }>(`/ops/tenants/${t(id)}/connectors`),
     saveConnector: (id: string, name: string, body: ConnectorInput) =>
       http.put<void>(`/ops/tenants/${t(id)}/connectors/${t(name)}`, body),
+    testConnector: (id: string, name: string, body: { operation: string; arguments: object }) =>
+      http.post<ConnectorTestResult>(`/ops/tenants/${t(id)}/connectors/${t(name)}/test`, body),
     deleteConnector: (id: string, name: string) =>
       http.del<void>(`/ops/tenants/${t(id)}/connectors/${t(name)}`),
 
