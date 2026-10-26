@@ -210,6 +210,11 @@ body.body--dark .q-field--outlined.q-field--focused .q-field__label {
     background: var(--ig-warn-bg);
     color: var(--ig-warn);
   }
+
+  &--error {
+    background: var(--ig-error-bg);
+    color: var(--ig-error);
+  }
 }
 
 body.body--dark .ig-pill--brand {

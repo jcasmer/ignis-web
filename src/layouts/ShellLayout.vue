@@ -47,6 +47,7 @@ const nav = computed<NavItem[]>(() =>
           ? [
               { to: '/app/reports', icon: 'insights', label: t('tenant.nav.reports') },
               { to: '/app/actions', icon: 'task_alt', label: t('tenant.nav.actions') },
+              { to: '/app/automations', icon: 'bolt', label: t('tenant.nav.automations') },
               {
                 to: '/app/knowledge',
                 icon: 'menu_book',

@@ -9,6 +9,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
 import IgSegmented from '@/components/IgSegmented.vue';
+import AutomationsPanel from '@/components/AutomationsPanel.vue';
 import TenantConnectors from '@/components/TenantConnectors.vue';
 import { useSessionStore } from '@/stores/session';
 import { diffLimits, diffModules, usdToMicro } from '@/utils/plan';
@@ -27,9 +28,10 @@ const ent = ref<Entitlements | null>(null);
 const loading = ref(true);
 const failed = ref(false);
 const missing = ref(false);
-type Tab = 'plan' | 'security' | 'credits' | 'mail' | 'connectors' | 'privacy';
+type Tab = 'plan' | 'security' | 'credits' | 'mail' | 'connectors' | 'automations' | 'privacy';
 const tab = ref<Tab>('plan');
 const connectorsSeen = ref(false);
+const automationsSeen = ref(false);
 
 // --- load -------------------------------------------------------------------
 async function load() {
@@ -349,6 +351,7 @@ async function grant() {
 function onTab(v: Tab) {
   tab.value = v;
   if (v === 'connectors') connectorsSeen.value = true;
+  if (v === 'automations') automationsSeen.value = true;
   if (v === 'security' && !mfaLoaded.value) void loadSecurity();
   if (v === 'credits' && !statement.value) void loadStatement();
   if (v === 'mail' && !mailLoaded.value) void loadMail();
@@ -417,6 +420,7 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
             { value: 'credits', label: t('admin.tenant.tabs.credits') },
             { value: 'mail', label: t('admin.tenant.tabs.mail') },
             { value: 'connectors', label: t('admin.tenant.tabs.connectors') },
+            { value: 'automations', label: t('admin.tenant.tabs.automations') },
             { value: 'privacy', label: t('admin.tenant.tabs.privacy') },
           ]"
           @update:model-value="onTab"
@@ -425,6 +429,14 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
 
       <!-- Connectors: loaded when the tab is first opened and kept after that -->
       <TenantConnectors v-if="connectorsSeen" v-show="tab === 'connectors'" :tenant-id="id" />
+
+      <!-- Automations: loaded when the tab is first opened and kept after that -->
+      <AutomationsPanel
+        v-if="automationsSeen"
+        v-show="tab === 'automations'"
+        :client="session.ops.automationsOf(id)"
+        :load-connectors="async () => (await session.ops.connectors(id)).items"
+      />
 
       <!-- Plan -->
       <div v-if="tab === 'plan' && ent" class="column q-gutter-y-md">

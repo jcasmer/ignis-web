@@ -1,3 +1,4 @@
+import { automationsClient } from './automations';
 import type { Http } from './http';
 import type {
   Connector,
@@ -252,6 +253,9 @@ export function opsApi(http: Http) {
       http.post<ConnectorTestResult>(`/ops/tenants/${t(id)}/connectors/${t(name)}/test`, body),
     deleteConnector: (id: string, name: string) =>
       http.del<void>(`/ops/tenants/${t(id)}/connectors/${t(name)}`),
+
+    /** The rules of a tenant, for an operator. */
+    automationsOf: (id: string) => automationsClient(http, `/ops/tenants/${t(id)}/automations`),
 
     mail: (id: string) => http.get<MailInput>(`/ops/tenants/${t(id)}/mail`),
     saveMail: (id: string, body: MailInput) => http.put<void>(`/ops/tenants/${t(id)}/mail`, body),

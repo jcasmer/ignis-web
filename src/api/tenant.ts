@@ -1,3 +1,4 @@
+import { automationsClient } from './automations';
 import type { Http } from './http';
 
 export interface StatsTotals {
@@ -335,6 +336,7 @@ export function tenantApi(http: Http) {
     ) => http.put<Channel>(`/channels/${channel}`, body),
 
     connectors: () => http.get<{ items: Connector[] }>('/connectors'),
+    automations: automationsClient(http, '/automations'),
     mailSettings: () => http.get<MailSettings>('/mail'),
     mailOutbox: (limit = 50) => http.get<{ items: Email[] }>(`/mail/outbox${query({ limit })}`),
 
