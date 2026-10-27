@@ -410,6 +410,44 @@ export default {
       intro:
         'Reglas que actúan solas: cuando pasa algo y se cumplen unas condiciones, hacen lo que les pidas. Sin IA responden siempre igual y no gastan crédito; con IA un modelo analiza datos y tú decides qué hacer con lo que devuelve.',
       tabs: { plain: 'Sin IA', ai: 'Con IA', runs: 'Ejecuciones' },
+      templates: {
+        open: 'Plantillas',
+        title: 'Empieza desde una plantilla',
+        intro:
+          'Elige una automatización lista, contesta unas preguntas y la ves armada antes de guardarla. Puedes cambiarle lo que quieras.',
+        all: 'Todas',
+        category: {
+          attention: 'Atender clientes',
+          alerts: 'Avisos',
+          reports: 'Reportes',
+        },
+        trigger: {
+          message_received: 'Cuando llega un mensaje',
+          schedule: 'A una hora fija',
+        },
+        needs: {
+          mail: 'Necesita el correo del negocio',
+          ai: 'Usa IA y se cobra de tu crédito',
+        },
+        noAi: 'Sin IA: no gasta crédito',
+        use: 'Usar esta plantilla',
+        questions: 'Unas preguntas',
+        questionsIntro: 'Ya vienen con un valor de ejemplo: cámbialo por el tuyo.',
+        back: 'Volver',
+        build: 'Armar la automatización',
+        close: 'Cerrar',
+        refused: 'Revisa las respuestas: alguna no es válida.',
+        loadFailed: 'No pudimos cargar las plantillas.',
+        listHint: 'Separadas por comas',
+        problem: {
+          required: 'Escribe una respuesta.',
+          hour: 'Una hora entera de 0 a 23.',
+          time: 'Una hora como 07:30.',
+          words: 'Escribe de 1 a 20 palabras separadas por comas.',
+        },
+        hourHint: 'De 0 a 23',
+        empty: 'Todavía no hay plantillas en esta categoría.',
+      },
       plainHint: 'Reglas fijas: ante lo mismo siempre hacen lo mismo y no gastan crédito de IA.',
       aiHint:
         'Flujos con pasos de IA: un modelo clasifica o resume y las condiciones que tú escribes deciden el camino. Cada paso de IA se cobra de tu crédito.',

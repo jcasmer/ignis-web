@@ -12,6 +12,7 @@ import type {
 } from '@/api/automations';
 import type { Connector } from '@/api/tenant';
 import AutomationBuilder from '@/components/AutomationBuilder.vue';
+import AutomationTemplates from '@/components/AutomationTemplates.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { refreshOnFocus } from '@/composables/refreshOnFocus';
 import EmptyState from '@/components/EmptyState.vue';
@@ -129,6 +130,15 @@ function start(r?: AutomationRule) {
   building.value = true;
 }
 
+// A template makes a rule the owner still sees in the builder and can change before saving it.
+const galleryOpen = ref(false);
+function fromTemplate(rule: AutomationRule) {
+  galleryOpen.value = false;
+  draft.value = ruleToDraft(rule);
+  apiError.value = '';
+  building.value = true;
+}
+
 const notIncludedText = (ai: boolean) =>
   props.operator
     ? t(ai ? 'admin.tenant.automationsOff.ai' : 'admin.tenant.automationsOff.plain')
@@ -227,13 +237,20 @@ const statusClass = (s: AutomationRun['status']) =>
         />
       </div>
       <div v-if="!notIncluded" class="col-12 col-sm-auto">
-        <IgButton
-          v-if="section !== 'runs'"
-          variant="primary"
-          icon="add"
-          :label="t('tenant.automations.new')"
-          @click="start()"
-        />
+        <div v-if="section !== 'runs'" class="row q-gutter-sm">
+          <IgButton
+            variant="secondary"
+            icon="auto_stories"
+            :label="t('tenant.automations.templates.open')"
+            @click="galleryOpen = true"
+          />
+          <IgButton
+            variant="primary"
+            icon="add"
+            :label="t('tenant.automations.new')"
+            @click="start()"
+          />
+        </div>
         <IgButton
           v-else
           variant="secondary"
@@ -392,6 +409,8 @@ const statusClass = (s: AutomationRun['status']) =>
         </div>
       </template>
     </template>
+
+    <AutomationTemplates v-model="galleryOpen" :client="client" @build="fromTemplate" />
 
     <ConfirmDialog
       v-model="confirmOpen"
