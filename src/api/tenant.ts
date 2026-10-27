@@ -1,3 +1,4 @@
+import { auditClient } from '@/api/audit';
 import { automationsClient } from './automations';
 import { assistantClient } from './assistant';
 import { whatsappClient } from './whatsapp';
@@ -375,6 +376,7 @@ export function tenantApi(http: Http) {
     eraseContact: (id: string) => http.del<void>(`/contacts/${encodeURIComponent(id)}`),
     erasures: (limit = 100) => http.get<{ items: Erasure[] }>(`/erasures${query({ limit })}`),
 
+    audit: auditClient(http, '/audit'),
     ownPlan: () => http.get<OwnPlan>('/tenant'),
     balance: () => http.get<Balance>('/credits/balance'),
     ledger: (p: { cursor?: string; limit?: number } = {}) =>

@@ -50,6 +50,7 @@ Cómo leerlos:
 13. [Correo](cliente/12-correo.md)
 14. [Privacidad](cliente/13-privacidad.md)
 15. [Preguntas frecuentes](cliente/14-preguntas-frecuentes.md)
+16. [Auditoría](cliente/15-auditoria.md)
 
 ## Glosario mínimo
 

@@ -9,7 +9,7 @@ describe('manuals', () => {
     const team = manualsOf('equipo');
     const client = manualsOf('cliente');
     expect(team.length).toBe(15);
-    expect(client.length).toBe(15);
+    expect(client.length).toBe(16);
     expect(team[0]?.slug.startsWith('00-')).toBe(true);
     expect(findManual('equipo', '10-pestana-automatizaciones')?.title).toBe(
       'Pestaña Automatizaciones',

@@ -87,3 +87,16 @@ Lo que vende Ignis. Cada plan junta **módulos**, **límites**, el **crédito de
 - **Editar un plan** llega a **todos** sus clientes; lo que cada uno tenga ajustado aparte se conserva. Si el plan sube el crédito de IA, se da lo que falta del mes en curso; nunca se quita crédito.
 - **Asignar un plan** a un cliente: al crearlo (selector **Plan**) o en su pestaña [Plan](02-pestana-plan.md), tarjeta **Plan del cliente**. Recibe los módulos y límites del plan y se borran sus ajustes.
 - Lo que cambies a mano en esa pestaña queda como **ajuste** de ese cliente (se muestra como «Este cliente se aparta del plan»).
+
+## Auditoría {#auditoria}
+
+Quién cambió qué y cuándo en **toda la plataforma**: equipo de Ignis, usuarios de los clientes, llaves de API y la llave de operación. Cada acción que cambia algo queda registrada **una vez que responde** (también las prohibidas y las que fallan en el servidor); las pruebas en seco («Probar antes de guardar», vista previa) no cuentan. **Solo se agrega: nadie lo edita ni lo borra**, y nunca guarda cuerpos, mensajes ni claves.
+
+| Filtro            | Qué hace                                                            |
+| ----------------- | ------------------------------------------------------------------- |
+| **Cliente**       | Solo lo que se hizo sobre ese cliente.                              |
+| **Qué se hizo**   | Clientes, Planes, Paquetes, Créditos, Precios de IA, Equipo o Demo. |
+| **Resultado**     | **Hecho**, **Sin permiso** o **Falló**.                             |
+| **Desde / Hasta** | Un periodo.                                                         |
+
+Una persona del equipo aparece con su correo; el cliente solo ve «Equipo de Ignis». Para qué sirve: responder «¿quién cambió el plan de este cliente?» o «¿quién borró esa regla?».
