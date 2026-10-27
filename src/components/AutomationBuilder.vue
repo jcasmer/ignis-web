@@ -10,6 +10,7 @@ import type {
   AutomationTrace,
 } from '@/api/automations';
 import type { Connector } from '@/api/tenant';
+import type { WhatsAppTemplate } from '@/api/whatsapp';
 import AutomationTest from '@/components/AutomationTest.vue';
 import ConditionRows from '@/components/ConditionRows.vue';
 import IgAlert from '@/components/IgAlert.vue';
@@ -27,6 +28,8 @@ import {
 
 const props = defineProps<{
   connectors: Connector[];
+  /** The WhatsApp templates the steps can write with. */
+  templates: WhatsAppTemplate[];
   models: string[];
   providers: ModelProvider[];
   saving: boolean;
@@ -45,6 +48,8 @@ const FIXED: AutomationActionType[] = [
   'handoff',
   'ignis_stats',
   'knowledge_search',
+  'whatsapp_template',
+  'wait',
 ];
 const WITH_AI: AutomationActionType[] = ['ai_analyze', 'ai_extract'];
 const DAYS = [1, 2, 3, 4, 5, 6, 7];
@@ -238,6 +243,7 @@ function buildForTest(): { input?: AutomationInput; error?: string } {
               :steps="draft.steps"
               :trigger="draft.trigger"
               :connectors="connectors"
+              :templates="templates"
               :models="models"
               :providers="providers"
               :problem="problems.step[i]"

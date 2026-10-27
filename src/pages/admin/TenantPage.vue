@@ -505,6 +505,7 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
         operator
         :client="session.ops.automationsOf(id)"
         :load-connectors="async () => (await session.ops.connectors(id)).items"
+        :load-templates="async () => (await session.ops.whatsappOf(id).templates()).items"
       />
 
       <!-- Plan -->

@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 
 import type { ModelProvider } from '@/api/automations';
 import type { Connector } from '@/api/tenant';
+import type { WhatsAppTemplate } from '@/api/whatsapp';
 import ConditionRows from '@/components/ConditionRows.vue';
 import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
@@ -17,12 +18,15 @@ import {
   type StepDraft,
 } from '@/utils/automations';
 import { effectiveRisk } from '@/utils/connectors';
+import { preview, variablesOf } from '@/utils/whatsapp';
+import { WAIT_UNITS, type WaitUnit } from '@/utils/automations';
 
 const props = defineProps<{
   index: number;
   steps: StepDraft[];
   trigger: RuleDraft['trigger'];
   connectors: Connector[];
+  templates: WhatsAppTemplate[];
   models: string[];
   providers: ModelProvider[];
   /** What is wrong with this step, from the validation of the form. */
@@ -44,6 +48,8 @@ const ICONS: Record<StepDraft['type'], string> = {
   ai_extract: 'data_object',
   ignis_stats: 'insights',
   knowledge_search: 'menu_book',
+  whatsapp_template: 'chat',
+  wait: 'schedule',
 };
 
 const icon = computed(() => ICONS[step.value.type]);
@@ -113,7 +119,36 @@ watch(
   },
 );
 
-// --- model steps -------------------------------------------------------------------------------
+// --- WhatsApp template ------------------------------------------------------------------------
+const template = computed(() => props.templates.find((x) => x.id === step.value.template));
+const templateOptions = computed(() =>
+  props.templates.map((x) => ({
+    value: x.id,
+    label: `${x.name} (${x.language}) · ${t(`whatsapp.status.${x.status}`)}`,
+  })),
+);
+// One value for each variable of the template, kept as the choice changes.
+function pickTemplate(id: string) {
+  step.value.template = id;
+  const n = variablesOf(props.templates.find((x) => x.id === id)?.body ?? '').length;
+  step.value.values = Array.from({ length: n }, (_, i) => step.value.values[i] ?? '');
+}
+const writesToContact = computed(
+  () => step.value.to.trim() === '' && props.trigger === 'message_received',
+);
+const withValues = computed(() =>
+  template.value ? preview(template.value.body, step.value.values) : '',
+);
+const units = (['minutes', 'hours', 'days'] as WaitUnit[]).map((u) => ({
+  value: u,
+  label: u,
+}));
+const waitMinutes = computed(() => {
+  const n = Number(step.value.amount.replace(',', '.'));
+  return Number.isFinite(n) ? n * WAIT_UNITS[step.value.unit] : NaN;
+});
+
+// --- model steps --------------------------------------------------------------------------------
 function addInput() {
   step.value.inputs.push({ label: '', value: '' });
 }
@@ -312,6 +347,91 @@ const DAYS = [1, 3, 7, 14, 30, 60, 90];
               :hint="t('tenant.automations.knowledgeLimitHint')"
             />
           </div>
+        </div>
+      </template>
+
+      <!-- WhatsApp template -->
+      <template v-else-if="step.type === 'whatsapp_template'">
+        <q-select
+          :model-value="step.template"
+          dense
+          outlined
+          emit-value
+          map-options
+          :options="templateOptions"
+          :label="t('tenant.automations.waTemplate')"
+          :hint="
+            templateOptions.length
+              ? t('tenant.automations.waTemplateHint')
+              : t('tenant.automations.waNoTemplates')
+          "
+          @update:model-value="pickTemplate"
+        />
+        <q-input
+          v-model="step.to"
+          dense
+          outlined
+          inputmode="numeric"
+          class="q-mt-sm"
+          :label="t('tenant.automations.waTo')"
+          :hint="
+            trigger === 'message_received'
+              ? t('tenant.automations.waToHintMessage')
+              : t('tenant.automations.waToHintSchedule')
+          "
+        />
+        <div v-if="template && step.values.length" class="column q-gutter-y-sm q-mt-sm">
+          <div class="text-caption ig-muted">{{ t('tenant.automations.waValues') }}</div>
+          <q-input
+            v-for="(_, i) in step.values"
+            :key="i"
+            v-model="step.values[i]"
+            dense
+            outlined
+            :label="t('tenant.automations.waValueOf', { n: i + 1 })"
+          />
+        </div>
+        <div v-if="template" class="ig-wa-preview q-mt-sm">{{ withValues }}</div>
+        <div v-if="writesToContact" class="text-caption ig-muted q-mt-xs">
+          {{ t('tenant.automations.waToContact') }}
+        </div>
+      </template>
+
+      <!-- wait -->
+      <template v-else-if="step.type === 'wait'">
+        <div class="row q-col-gutter-sm">
+          <div class="col-6 col-sm-4">
+            <q-input
+              v-model="step.amount"
+              dense
+              outlined
+              inputmode="numeric"
+              :label="t('tenant.automations.waAmount')"
+            />
+          </div>
+          <div class="col-6 col-sm-5">
+            <q-select
+              v-model="step.unit"
+              dense
+              outlined
+              emit-value
+              map-options
+              :options="
+                units.map((u) => ({
+                  value: u.value,
+                  label: t(`tenant.automations.waUnit.${u.value}`),
+                }))
+              "
+              :label="t('tenant.automations.waUnitLabel')"
+            />
+          </div>
+        </div>
+        <div class="text-caption ig-muted q-mt-xs">
+          {{
+            t('tenant.automations.waitHint', {
+              minutes: Number.isFinite(waitMinutes) ? waitMinutes : 0,
+            })
+          }}
         </div>
       </template>
 
@@ -539,6 +659,15 @@ const DAYS = [1, 3, 7, 14, 30, 60, 90];
 </template>
 
 <style scoped>
+.ig-wa-preview {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--ig-surface-2, rgba(127, 127, 127, 0.1));
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
 .ig-step__n {
   display: inline-flex;
   align-items: center;

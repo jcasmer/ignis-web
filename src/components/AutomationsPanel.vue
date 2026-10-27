@@ -11,6 +11,7 @@ import type {
   ModelProvider,
 } from '@/api/automations';
 import type { Connector } from '@/api/tenant';
+import type { WhatsAppTemplate } from '@/api/whatsapp';
 import AutomationBuilder from '@/components/AutomationBuilder.vue';
 import AutomationTemplates from '@/components/AutomationTemplates.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
@@ -31,6 +32,8 @@ import {
 const props = defineProps<{
   client: AutomationsClient;
   loadConnectors: () => Promise<Connector[]>;
+  /** The WhatsApp templates a step can write with. Optional: without it none can be chosen. */
+  loadTemplates?: () => Promise<WhatsAppTemplate[]>;
   /** Seen by the Ignis team, not by the customer: the texts say how to fix it, not whom to ask. */
   operator?: boolean;
 }>();
@@ -44,6 +47,7 @@ const section = ref<Section>('plain');
 
 const rules = ref<AutomationRule[]>([]);
 const connectors = ref<Connector[]>([]);
+const waTemplates = ref<WhatsAppTemplate[]>([]);
 const models = ref<string[]>([]);
 const providers = ref<ModelProvider[]>([]);
 const loading = ref(true);
@@ -66,6 +70,8 @@ async function load() {
   }
   // The systems of the tenant are only for the steps that call them: not having them is not an error.
   connectors.value = await props.loadConnectors().catch(() => []);
+  // The same for the WhatsApp templates: a tenant without that channel simply has none to choose.
+  waTemplates.value = (await props.loadTemplates?.().catch(() => [])) ?? [];
   // Without the list the steps simply use the model of the plan.
   const offer = await props.client.models().catch(() => ({ items: [], providers: [] }));
   models.value = offer.items;
@@ -107,6 +113,28 @@ const when = (iso: string) =>
   new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' }).format(
     new Date(iso),
   );
+
+// --- trying a failed run again ----------------------------------------------------------------
+const retrying = ref<string | null>(null);
+
+async function retry(run: AutomationRun) {
+  retrying.value = run.id;
+  try {
+    await props.client.retryRun(run.id);
+    $q.notify({ type: 'positive', message: t('tenant.automations.retried') });
+    await loadRuns();
+  } catch (e) {
+    const detail = (e as { detail?: string }).detail;
+    $q.notify({
+      type: 'negative',
+      message: detail
+        ? t('tenant.automations.retryRefusedWith', { why: detail })
+        : t('tenant.automations.retryRefused'),
+    });
+  } finally {
+    retrying.value = null;
+  }
+}
 
 // --- how a rule reads -----------------------------------------------------------------------------
 function triggerText(r: AutomationRule): string {
@@ -376,10 +404,17 @@ const statusClass = (s: AutomationRun['status']) =>
                   <template v-if="run.ai_cost_micro > 0"
                     >· {{ microToUsd(run.ai_cost_micro) }}</template
                   >
+                  <template v-if="run.status === 'running' && run.resume_at">
+                    · {{ t('tenant.automations.waitingUntil', { at: when(run.resume_at) }) }}
+                  </template>
                 </div>
               </div>
               <span class="ig-pill" :class="statusClass(run.status)">
-                {{ t(`tenant.automations.status.${run.status}`) }}
+                {{
+                  run.status === 'running' && run.resume_at
+                    ? t('tenant.automations.status.waiting')
+                    : t(`tenant.automations.status.${run.status}`)
+                }}
               </span>
               <q-icon :name="openRun === run.id ? 'expand_less' : 'expand_more'" class="q-ml-sm" />
             </div>
@@ -404,6 +439,19 @@ const statusClass = (s: AutomationRun['status']) =>
                 {{ t('tenant.automations.noSteps') }}
               </div>
               <IgAlert v-if="run.error" tone="error" class="q-mt-sm">{{ run.error }}</IgAlert>
+              <div v-if="run.status === 'failed'" class="q-mt-sm">
+                <IgButton
+                  variant="secondary"
+                  size="sm"
+                  icon="replay"
+                  :label="t('tenant.automations.retry')"
+                  :loading="retrying === run.id"
+                  @click.stop="retry(run)"
+                />
+                <span class="text-caption ig-muted q-ml-sm">{{
+                  t('tenant.automations.retryHint')
+                }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -454,6 +502,7 @@ const statusClass = (s: AutomationRun['status']) =>
           v-model="draft"
           class="col"
           :connectors="connectors"
+          :templates="waTemplates"
           :models="models"
           :providers="providers"
           :saving="saving"

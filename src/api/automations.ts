@@ -49,7 +49,9 @@ export type AutomationActionType =
   | 'ai_analyze'
   | 'ai_extract'
   | 'ignis_stats'
-  | 'knowledge_search';
+  | 'knowledge_search'
+  | 'whatsapp_template'
+  | 'wait';
 
 export interface AutomationAction {
   type: AutomationActionType;
@@ -69,6 +71,12 @@ export interface AutomationAction {
   limit?: number;
   max_tokens?: number;
   days?: number;
+  /** whatsapp_template: the id of the template, the number (empty: the contact) and the value of each variable. */
+  template?: string;
+  to?: string;
+  values?: string[];
+  /** wait: how long, in minutes. */
+  minutes?: number;
   when?: AutomationGuard;
 }
 
@@ -117,6 +125,8 @@ export interface AutomationRun {
   rule_id: string;
   rule_name: string;
   rule_version: number;
+  /** When a run that is waiting goes on. */
+  resume_at?: string;
   key: string;
   status: AutomationRunStatus;
   steps: AutomationStep[];
@@ -170,6 +180,8 @@ export interface AutomationsClient {
   test(rule: AutomationInput, event: AutomationSampleEvent): Promise<AutomationTrace>;
   /** The models a step may ask for, as "provider:model". */
   models(): Promise<{ items: string[]; providers: ModelProvider[] }>;
+  /** Takes a failed run up again from the step that failed. */
+  retryRun(id: string): Promise<AutomationRun>;
   /** The ready-made rules. */
   templates(): Promise<{ items: AutomationTemplate[] }>;
   /** The rule a template makes with the answers given; nothing is saved. */
@@ -194,6 +206,7 @@ export function automationsClient(http: Http, base: string): AutomationsClient {
     runs: (p = {}) => http.get(`${base}/runs${query({ rule: p.rule, limit: p.limit })}`),
     test: (rule, event) => http.post(`${base}/test`, { rule, event }),
     models: () => http.get(`${base}/models`),
+    retryRun: (id) => http.post(`${base}/runs/${encodeURIComponent(id)}/retry`, {}),
     templates: () => http.get(`${base}/templates`),
     buildTemplate: (id, values) =>
       http.post(`${base}/templates/${encodeURIComponent(id)}/build`, { values }),
