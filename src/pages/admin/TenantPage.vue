@@ -326,6 +326,27 @@ async function setMfa(v: boolean) {
   }
 }
 
+const inviting = ref(false);
+const inviteLink = ref('');
+
+// The owner lost the email or let it expire: a new link goes out.
+async function resendInvitation() {
+  inviting.value = true;
+  inviteLink.value = '';
+  try {
+    const r = await session.ops.resendOwnerInvitation(id, tenant.value?.name ?? '');
+    if (r.sent) $q.notify({ type: 'positive', message: t('admin.tenant.security.resent') });
+    else {
+      inviteLink.value = r.link ?? '';
+      $q.notify({ type: 'warning', message: t('admin.tenant.security.notSent') });
+    }
+  } catch {
+    $q.notify({ type: 'negative', message: t('common.loadError') });
+  } finally {
+    inviting.value = false;
+  }
+}
+
 // --- mail ---------------------------------------------------------------------
 const mailLoaded = ref(false);
 const mailName = ref('');
@@ -794,6 +815,28 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
             @update:model-value="setMfa"
           />
           <div class="text-caption ig-muted q-mt-sm">{{ t('admin.tenant.security.mfaHint') }}</div>
+          <q-separator class="q-my-md" />
+          <div class="text-weight-medium">{{ t('admin.tenant.security.inviteTitle') }}</div>
+          <div class="text-caption ig-muted q-mb-sm">
+            {{ t('admin.tenant.security.inviteHint') }}
+          </div>
+          <IgButton
+            variant="secondary"
+            icon="forward_to_inbox"
+            :loading="inviting"
+            :label="t('admin.tenant.security.resend')"
+            @click="resendInvitation"
+          />
+          <q-input
+            v-if="inviteLink"
+            :model-value="inviteLink"
+            readonly
+            outlined
+            dense
+            class="q-mt-md"
+            input-class="ig-code"
+            :label="t('admin.tenants.new.fallbackLink')"
+          />
         </template>
       </div>
 

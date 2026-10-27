@@ -23,6 +23,9 @@ function authPages(area: Area, prefix: string): RouteRecordRaw[] {
     { path: `${prefix}login`, component: () => import('@/pages/auth/LoginPage.vue'), meta },
     { path: `${prefix}code`, component: () => import('@/pages/auth/CodePage.vue'), meta },
     { path: `${prefix}forgot`, component: () => import('@/pages/auth/ForgotPage.vue'), meta },
+    ...(area === 'tenant'
+      ? [{ path: `${prefix}activate`, component: () => import('@/pages/auth/ResetPage.vue'), meta }]
+      : []),
     {
       path: `${prefix}reset-password`,
       // The emails link to /ops/reset-password for operators.

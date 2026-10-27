@@ -74,6 +74,13 @@ export default {
       send: 'Enviar enlace',
       sent: 'Si la cuenta existe, te enviamos un enlace. Revisa tu correo; vence en 30 minutos.',
     },
+    activatePage: {
+      title: 'Activa tu cuenta',
+      intro:
+        'Crea tu contraseña para empezar. Después, al ingresar, configurarás tu segundo factor con una app de autenticación.',
+      save: 'Crear mi contraseña',
+      done: 'Listo: tu contraseña quedó creada. Ingresa ahora y configura tu segundo factor.',
+    },
     resetPage: {
       title: 'Elige una contraseña nueva',
       newPassword: 'Contraseña nueva',
@@ -1136,6 +1143,16 @@ export default {
         noPlan: 'Sin plan (elijo los módulos a mano)',
         planHint:
           'El plan define los módulos, los límites y el crédito de IA que incluye cada mes. Lo puedes cambiar después.',
+        invite: 'Enviar al dueño un correo para activar su cuenta',
+        inviteHint:
+          'El dueño recibe un enlace (sirve una vez y vence en 3 días) para elegir su contraseña. Tú nunca la ves.',
+        noInviteHint: 'Defines la contraseña inicial y se la entregas tú.',
+        requireMfa: 'Exigir el segundo factor desde el primer ingreso',
+        invited: 'Cliente creado. Enviamos el correo de activación a {email}.',
+        fallbackTitle: 'Cliente creado, pero el correo no salió',
+        fallbackBody:
+          'El correo de Ignis no está configurado o falló. Entrégale este enlace al dueño por otro medio: sirve una vez y vence en 3 días. También puedes reenviarlo luego desde la pestaña Seguridad.',
+        fallbackLink: 'Enlace de activación',
         modules: 'Módulos contratados',
         allModules: 'Todos los módulos',
         created: 'Cliente creado.',
@@ -1407,6 +1424,12 @@ export default {
         reset: 'Descartar cambios',
       },
       security: {
+        inviteTitle: 'Correo de activación del dueño',
+        inviteHint:
+          'Si el dueño perdió el correo o el enlace venció, envía uno nuevo. Los anteriores siguen sirviendo hasta que venzan.',
+        resend: 'Reenviar el correo de activación',
+        resent: 'Correo enviado al dueño.',
+        notSent: 'El correo no salió. Entrega el enlace que aparece abajo.',
         mfa: 'Exigir segundo factor a los usuarios de este cliente',
         mfaHint:
           'Quien no lo tenga lo configura en su siguiente ingreso. Con esto activo nadie puede desactivarlo.',

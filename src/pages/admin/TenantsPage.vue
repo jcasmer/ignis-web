@@ -70,8 +70,24 @@ const form = ref({
   modules: [] as string[],
   allModules: true,
   planId: '',
+  // The owner chooses their own password through an email link; the alternative is to set it here.
+  invite: true,
+  requireMfa: true,
 });
 const slugTouched = ref(false);
+
+// When the email cannot go out, the link is shown so it can be handed over another way.
+const fallbackLink = ref('');
+const fallbackOpen = computed({
+  get: () => fallbackLink.value !== '',
+  set: (v) => {
+    if (!v) fallbackLink.value = '';
+  },
+});
+async function copyLink() {
+  await copyToClipboard(fallbackLink.value);
+  $q.notify({ type: 'positive', message: t('common.copied'), timeout: 1500 });
+}
 
 function startCreate() {
   form.value = {
@@ -82,6 +98,8 @@ function startCreate() {
     modules: [],
     allModules: true,
     planId: '',
+    invite: true,
+    requireMfa: true,
   };
   slugTouched.value = false;
   error.value = '';
@@ -101,21 +119,31 @@ async function copyPassword() {
 async function create() {
   error.value = '';
   const f = form.value;
-  if (!f.name.trim() || !f.email.trim() || !f.password)
+  if (!f.name.trim() || !f.email.trim() || (!f.invite && !f.password))
     return void (error.value = t('auth.errors.required'));
   if (!SLUG_PATTERN.test(f.slug)) return void (error.value = t('admin.tenants.new.slugInvalid'));
   saving.value = true;
   try {
-    await session.ops.createTenant({
+    const res = await session.ops.createTenant({
       slug: f.slug,
       name: f.name.trim(),
       owner_email: f.email.trim(),
-      owner_password: f.password,
+      ...(f.invite ? { require_mfa: f.requireMfa } : { owner_password: f.password }),
       ...(f.planId ? { plan_id: f.planId } : !f.allModules && { modules: f.modules }),
     });
     creating.value = false;
     form.value.password = '';
-    $q.notify({ type: 'positive', message: t('admin.tenants.new.created') });
+    if (res.activation?.sent) {
+      $q.notify({
+        type: 'positive',
+        message: t('admin.tenants.new.invited', { email: f.email.trim() }),
+      });
+    } else if (res.activation) {
+      // The client exists but the email did not go out.
+      fallbackLink.value = res.activation.link ?? ' ';
+    } else {
+      $q.notify({ type: 'positive', message: t('admin.tenants.new.created') });
+    }
     await load();
   } catch (e) {
     error.value =
@@ -233,7 +261,29 @@ async function create() {
               autocomplete="off"
               :label="t('admin.tenants.new.email')"
             />
+            <div>
+              <q-toggle
+                v-model="form.invite"
+                color="primary"
+                :label="t('admin.tenants.new.invite')"
+              />
+              <div class="text-caption ig-muted">
+                {{
+                  form.invite
+                    ? t('admin.tenants.new.inviteHint')
+                    : t('admin.tenants.new.noInviteHint')
+                }}
+              </div>
+              <q-toggle
+                v-if="form.invite"
+                v-model="form.requireMfa"
+                color="primary"
+                class="q-mt-xs"
+                :label="t('admin.tenants.new.requireMfa')"
+              />
+            </div>
             <q-input
+              v-if="!form.invite"
               v-model="form.password"
               outlined
               autocomplete="new-password"
@@ -316,6 +366,37 @@ async function create() {
             />
           </q-card-actions>
         </q-form>
+      </q-card>
+    </q-dialog>
+    <q-dialog v-model="fallbackOpen">
+      <q-card
+        class="ig-card ig-card--raised"
+        style="width: 520px; max-width: 94vw; border-radius: 20px"
+      >
+        <q-card-section>
+          <div class="text-h6">{{ t('admin.tenants.new.fallbackTitle') }}</div>
+          <p class="ig-muted q-mt-sm">{{ t('admin.tenants.new.fallbackBody') }}</p>
+          <q-input
+            :model-value="fallbackLink.trim()"
+            readonly
+            outlined
+            input-class="ig-code"
+            :label="t('admin.tenants.new.fallbackLink')"
+          >
+            <template #append>
+              <IgButton
+                variant="ghost"
+                size="sm"
+                icon="content_copy"
+                :label="t('admin.tenants.new.copy')"
+                @click="copyLink"
+              />
+            </template>
+          </q-input>
+        </q-card-section>
+        <q-card-actions align="right" class="q-pa-md">
+          <IgButton variant="primary" :label="t('common.close')" @click="fallbackOpen = false" />
+        </q-card-actions>
       </q-card>
     </q-dialog>
   </q-page>
