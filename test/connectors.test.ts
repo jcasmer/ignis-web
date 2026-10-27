@@ -189,6 +189,15 @@ describe('failureText', () => {
     ['the connector has no credentials configured', /no tiene una credencial/],
     ['the system redirected the call, which is not allowed', /redirigió/],
     ['the system answered 503; try again later', /respondió 503. Inténtalo más tarde/],
+    [
+      'the system refused to renew the access of the connector: the Ignis team has to authorize it again',
+      /autorizarlo de nuevo/,
+    ],
+    [
+      'the system that gives access could not be reached; try again later',
+      /entrega los tokens\. Inténtalo/,
+    ],
+    ['the system that gives access failed; try again later', /entrega los tokens falló/],
   ])('translates %s', (message, expected) => {
     expect(failureText(message)).toMatch(expected);
   });
@@ -217,5 +226,100 @@ describe('small helpers', () => {
   it('shows the host of an address', () => {
     expect(hostOf('https://api.agenda.co/v1')).toBe('api.agenda.co');
     expect(hostOf('nope')).toBe('nope');
+  });
+});
+
+describe('an OAuth2 connector', () => {
+  const zoho = (over: Partial<ConnectorDraft> = {}) =>
+    valid({
+      authType: 'oauth2',
+      secret: '',
+      tokenUrl: 'https://accounts.zoho.com/oauth/v2/token',
+      scheme: 'Zoho-oauthtoken',
+      clientId: ' 1000.ABC ',
+      clientSecret: 'shh',
+      refreshToken: '1000.refresh',
+      ...over,
+    });
+
+  it('sends where tokens come from and the credentials as an object', () => {
+    const r = toConnectorInput(zoho());
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.input.auth).toEqual({
+      type: 'oauth2',
+      token_url: 'https://accounts.zoho.com/oauth/v2/token',
+      grant: 'refresh_token',
+      scheme: 'Zoho-oauthtoken',
+    });
+    expect(r.input.secret).toEqual({
+      client_id: '1000.ABC',
+      client_secret: 'shh',
+      refresh_token: '1000.refresh',
+    });
+  });
+
+  it('asks for the scope only when there is one, and Bearer when no word is given', () => {
+    const r = toConnectorInput(zoho({ scope: ' ZohoCRM.modules.ALL ', scheme: ' ' }));
+    expect(r.ok && r.input.auth).toMatchObject({ scope: 'ZohoCRM.modules.ALL', scheme: 'Bearer' });
+  });
+
+  it('needs no refresh token with client credentials, and does not send it', () => {
+    const r = toConnectorInput(zoho({ grant: 'client_credentials', refreshToken: 'ignored' }));
+    expect(r.ok && r.input.secret).toEqual({ client_id: '1000.ABC', client_secret: 'shh' });
+    expect(toConnectorInput(zoho({ grant: 'client_credentials', refreshToken: '' })).ok).toBe(true);
+  });
+
+  it('refuses a token address that is not https, has credentials or is not an address', () => {
+    for (const tokenUrl of ['http://a.com/t', 'https://u:p@a.com/t', 'accounts.zoho.com', '']) {
+      const r = toConnectorInput(zoho({ tokenUrl }));
+      expect(r.ok ? 'ok' : r.error, tokenUrl).toBe('tokenUrl');
+    }
+  });
+
+  it('refuses a bad word before the token and a scope with quotes', () => {
+    expect((toConnectorInput(zoho({ scheme: 'a b' })) as { error?: string }).error).toBe('scheme');
+    expect((toConnectorInput(zoho({ scope: 'a"b' })) as { error?: string }).error).toBe('scope');
+  });
+
+  it('needs every credential on a new connector, and all of them if any is typed on an old one', () => {
+    for (const over of [{ clientId: '' }, { clientSecret: '' }, { refreshToken: '' }]) {
+      const r = toConnectorInput(zoho(over));
+      expect(r.ok ? 'ok' : r.error).toBe('oauthSecret');
+    }
+    const stored = {
+      name: 'zoho',
+      base_url: 'https://www.zohoapis.com/crm/v6',
+      auth: { type: 'oauth2', token_url: 'https://accounts.zoho.com/oauth/v2/token' },
+      has_secret: true,
+      token_expires_at: '2026-10-27T05:00:00Z',
+      updated_at: '2026-10-26T00:00:00Z',
+      enabled: true,
+      operations: valid().operations.map((o) => ({
+        name: o.name,
+        description: o.description,
+        method: o.method,
+        path: o.path,
+        params: JSON.parse(o.params) as Record<string, unknown>,
+      })),
+    } as Connector;
+    const d = draftFromConnector(stored);
+    expect(d.tokenExpiresAt).toBe('2026-10-27T05:00:00Z');
+    // Editing without typing credentials keeps the stored ones: nothing goes out.
+    const kept = toConnectorInput(d);
+    expect(kept.ok).toBe(true);
+    expect(kept.ok && 'secret' in kept.input).toBe(false);
+    // Typing only one of them is not enough.
+    expect(toConnectorInput({ ...d, clientId: 'x' }).ok).toBe(false);
+  });
+
+  it('knows the Zoho regions and Google', async () => {
+    const { OAUTH_PRESETS } = await import('@/utils/connectors');
+    const eu = OAUTH_PRESETS.find((p) => p.id === 'zoho-eu');
+    expect(eu?.tokenUrl).toBe('https://accounts.zoho.eu/oauth/v2/token');
+    expect(eu?.scheme).toBe('Zoho-oauthtoken');
+    expect(eu?.baseUrl).toBe('https://www.zohoapis.eu/crm/v6');
+    expect(OAUTH_PRESETS.find((p) => p.id === 'google')?.scheme).toBe('Bearer');
+    expect(OAUTH_PRESETS.every((p) => p.tokenUrl.startsWith('https://'))).toBe(true);
   });
 });

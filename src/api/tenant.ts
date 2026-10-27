@@ -188,7 +188,16 @@ export interface MailSettings {
   sent_today: number;
 }
 
-export type ConnectorAuthType = 'none' | 'bearer' | 'header' | 'basic';
+export type ConnectorAuthType = 'none' | 'bearer' | 'header' | 'basic' | 'oauth2';
+
+export type OAuthGrant = 'refresh_token' | 'client_credentials';
+
+/** What an OAuth2 connector needs to sign in: the application and, to renew, a refresh token. */
+export interface OAuthSecret {
+  client_id: string;
+  client_secret: string;
+  refresh_token?: string;
+}
 export type OperationMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 /** What an operation may do: read needs no confirmation; the others wait for a person. */
 export type OperationRisk = 'read' | 'write' | 'external';
@@ -207,16 +216,26 @@ export interface ConnectorOperation {
 export interface ConnectorInput {
   description?: string;
   base_url: string;
-  auth: { type: ConnectorAuthType; header?: string };
+  auth: {
+    type: ConnectorAuthType;
+    header?: string;
+    /** oauth2: where tokens are asked for, how, what for, and the word before the token. */
+    token_url?: string;
+    grant?: OAuthGrant;
+    scope?: string;
+    scheme?: string;
+  };
   enabled?: boolean;
   operations: ConnectorOperation[];
-  /** The credential: it goes out when it is set and never comes back. */
-  secret?: string;
+  /** The credential: it goes out when it is set and never comes back. An object for OAuth2. */
+  secret?: string | OAuthSecret;
 }
 
 export interface Connector extends Omit<ConnectorInput, 'secret'> {
   name: string;
   has_secret: boolean;
+  /** oauth2: when the stored access token stops being valid; null before the first one. */
+  token_expires_at?: string | null;
   updated_at: string;
 }
 

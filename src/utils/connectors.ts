@@ -3,13 +3,55 @@ import type {
   ConnectorAuthType,
   ConnectorInput,
   ConnectorOperation,
+  OAuthGrant,
+  OAuthSecret,
   OperationMethod,
   OperationRisk,
 } from '@/api/tenant';
 
 export const METHODS: OperationMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 export const RISKS: OperationRisk[] = ['read', 'write', 'external'];
-export const AUTH_TYPES: ConnectorAuthType[] = ['none', 'bearer', 'header', 'basic'];
+export const AUTH_TYPES: ConnectorAuthType[] = ['none', 'bearer', 'header', 'basic', 'oauth2'];
+
+/** Where the tokens of the systems that ask for OAuth2 are given, to fill the form in one click. */
+export interface OAuthPreset {
+  id: string;
+  label: string;
+  tokenUrl: string;
+  scheme: string;
+  /** The address of the API, to start the connector from when none was typed. */
+  baseUrl?: string;
+}
+
+// Zoho keeps each region on its own domain: the account of the customer says which one is theirs.
+const ZOHO_REGIONS: { suffix: string; label: string }[] = [
+  { suffix: 'com', label: 'EE. UU. (.com)' },
+  { suffix: 'eu', label: 'Europa (.eu)' },
+  { suffix: 'in', label: 'India (.in)' },
+  { suffix: 'com.au', label: 'Australia (.com.au)' },
+  { suffix: 'jp', label: 'Japón (.jp)' },
+  { suffix: 'ca', label: 'Canadá (.ca)' },
+  { suffix: 'com.cn', label: 'China (.com.cn)' },
+  { suffix: 'sa', label: 'Arabia Saudita (.sa)' },
+];
+
+export const OAUTH_PRESETS: OAuthPreset[] = [
+  ...ZOHO_REGIONS.map((r) => ({
+    id: `zoho-${r.suffix}`,
+    label: `Zoho CRM · ${r.label}`,
+    tokenUrl: `https://accounts.zoho.${r.suffix}/oauth/v2/token`,
+    scheme: 'Zoho-oauthtoken',
+    baseUrl: `https://www.zohoapis.${r.suffix}/crm/v6`,
+  })),
+  {
+    id: 'google',
+    label: 'Google',
+    tokenUrl: 'https://oauth2.googleapis.com/token',
+    scheme: 'Bearer',
+  },
+];
+
+export const GRANTS: OAuthGrant[] = ['refresh_token', 'client_credentials'];
 
 // The same limits as the API: it decides for real, but the form says what is wrong before sending.
 const MAX_OPERATIONS = 50;
@@ -103,6 +145,17 @@ export interface ConnectorDraft {
   baseUrl: string;
   authType: ConnectorAuthType;
   header: string;
+  /** oauth2: where tokens come from, how to ask, what for, and the word before the token. */
+  tokenUrl: string;
+  grant: OAuthGrant;
+  scope: string;
+  scheme: string;
+  /** oauth2: the application and its refresh token; all empty keeps what is stored. */
+  clientId: string;
+  clientSecret: string;
+  refreshToken: string;
+  /** oauth2: when the stored token stops being valid. */
+  tokenExpiresAt: string | null;
   enabled: boolean;
   /** Empty keeps the stored one. */
   secret: string;
@@ -132,6 +185,14 @@ export function emptyConnector(): ConnectorDraft {
     baseUrl: 'https://',
     authType: 'bearer',
     header: '',
+    tokenUrl: 'https://',
+    grant: 'refresh_token',
+    scope: '',
+    scheme: 'Bearer',
+    clientId: '',
+    clientSecret: '',
+    refreshToken: '',
+    tokenExpiresAt: null,
     enabled: true,
     secret: '',
     hasSecret: false,
@@ -147,6 +208,14 @@ export function draftFromConnector(c: Connector): ConnectorDraft {
     baseUrl: c.base_url,
     authType: c.auth.type,
     header: c.auth.header ?? '',
+    tokenUrl: c.auth.token_url ?? 'https://',
+    grant: c.auth.grant ?? 'refresh_token',
+    scope: c.auth.scope ?? '',
+    scheme: c.auth.scheme ?? 'Bearer',
+    clientId: '',
+    clientSecret: '',
+    refreshToken: '',
+    tokenExpiresAt: c.token_expires_at ?? null,
     enabled: c.enabled ?? true,
     secret: '',
     hasSecret: c.has_secret,
@@ -167,6 +236,10 @@ export type ConnectorError =
   | 'description'
   | 'baseUrl'
   | 'header'
+  | 'tokenUrl'
+  | 'scheme'
+  | 'scope'
+  | 'oauthSecret'
   | 'secret'
   | 'operations'
   | 'duplicate'
@@ -251,8 +324,13 @@ export function toConnectorInput(d: ConnectorDraft): ConnectorResult {
   ) {
     return { ok: false, error: 'header' };
   }
-  // Without a credential a new connector with authentication could not sign in anywhere.
-  if (d.isNew && d.authType !== 'none' && !d.secret.trim()) return { ok: false, error: 'secret' };
+  if (d.authType === 'oauth2') {
+    const bad = oauthProblem(d);
+    if (bad) return { ok: false, error: bad };
+  } else if (d.isNew && d.authType !== 'none' && !d.secret.trim()) {
+    // Without a credential a new connector with authentication could not sign in anywhere.
+    return { ok: false, error: 'secret' };
+  }
   if (!d.operations.length || d.operations.length > MAX_OPERATIONS) {
     return { ok: false, error: 'operations' };
   }
@@ -270,11 +348,22 @@ export function toConnectorInput(d: ConnectorDraft): ConnectorResult {
     input: {
       ...(d.description.trim() && { description: d.description.trim() }),
       base_url: d.baseUrl.trim(),
-      auth: { type: d.authType, ...(d.authType === 'header' && { header: d.header }) },
+      auth: {
+        type: d.authType,
+        ...(d.authType === 'header' && { header: d.header }),
+        ...(d.authType === 'oauth2' && {
+          token_url: d.tokenUrl.trim(),
+          grant: d.grant,
+          ...(d.scope.trim() && { scope: d.scope.trim() }),
+          scheme: d.scheme.trim() || 'Bearer',
+        }),
+      },
       enabled: d.enabled,
       operations,
       // Only a secret that was typed goes out: leaving it empty keeps the stored one.
-      ...(d.authType !== 'none' && d.secret.trim() && { secret: d.secret.trim() }),
+      ...(d.authType === 'oauth2'
+        ? oauthSecretOf(d)
+        : d.authType !== 'none' && d.secret.trim() && { secret: d.secret.trim() }),
     },
   };
 }
@@ -285,6 +374,16 @@ export function toConnectorInput(d: ConnectorDraft): ConnectorResult {
  */
 export function failureText(message: string): string {
   const m = message.trim();
+  // The system that gives tokens (OAuth 2.0) says its own, so these come before the general ones.
+  if (/refused to renew the access/i.test(m)) {
+    return 'El sistema rechazó renovar el acceso del conector: hay que autorizarlo de nuevo con credenciales vigentes (Client ID, Client secret y refresh token).';
+  }
+  if (/system that gives access could not be reached/i.test(m)) {
+    return 'No se pudo conectar con el sistema que entrega los tokens. Inténtalo más tarde.';
+  }
+  if (/system that gives access failed/i.test(m)) {
+    return 'El sistema que entrega los tokens falló. Inténtalo más tarde.';
+  }
   if (/could not be reached/i.test(m)) {
     return 'No se pudo conectar con el sistema. Revisa la dirección y que esté disponible desde internet.';
   }
@@ -299,4 +398,46 @@ export function failureText(message: string): string {
   const detail = /^the system answered (\d{3}): ([\s\S]*)$/i.exec(m);
   if (detail) return `El sistema respondió ${detail[1]}: ${detail[2]}`;
   return m;
+}
+
+const OAUTH_SCHEME = /^[A-Za-z][A-Za-z0-9-]{0,31}$/;
+
+/** True when the person typed any of the credentials of an OAuth2 connector. */
+const typedOAuth = (d: ConnectorDraft) =>
+  Boolean(d.clientId.trim() || d.clientSecret.trim() || d.refreshToken.trim());
+
+/** What is wrong with the OAuth2 part of the form, if anything. */
+function oauthProblem(d: ConnectorDraft): ConnectorError | null {
+  if (!checkTokenUrl(d.tokenUrl)) return 'tokenUrl';
+  if (!OAUTH_SCHEME.test(d.scheme.trim() || 'Bearer')) return 'scheme';
+  if (d.scope.length > 200 || /["\r\n]/.test(d.scope)) return 'scope';
+  // A new connector needs its credentials; an old one keeps them unless new ones are typed, and then all of them.
+  if (d.isNew || typedOAuth(d)) {
+    const needsRefresh = d.grant === 'refresh_token';
+    if (!d.clientId.trim() || !d.clientSecret.trim() || (needsRefresh && !d.refreshToken.trim())) {
+      return 'oauthSecret';
+    }
+  }
+  return null;
+}
+
+function checkTokenUrl(raw: string): boolean {
+  try {
+    const u = new URL(raw.trim());
+    return u.protocol === 'https:' && u.hostname !== '' && !u.username && !u.hash;
+  } catch {
+    return false;
+  }
+}
+
+/** The secret object of an OAuth2 connector, only when the credentials were typed. */
+function oauthSecretOf(d: ConnectorDraft): { secret?: OAuthSecret } {
+  if (!typedOAuth(d)) return {};
+  return {
+    secret: {
+      client_id: d.clientId.trim(),
+      client_secret: d.clientSecret.trim(),
+      ...(d.grant === 'refresh_token' && { refresh_token: d.refreshToken.trim() }),
+    },
+  };
 }
