@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n';
 import type { KnowledgeClient, SearchResult } from '@/api/knowledge';
 import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
-import { clip, scoreText } from '@/utils/knowledge';
+import { clip, scoreText, tryValue, type Try } from '@/utils/knowledge';
 
 const props = defineProps<{ client: KnowledgeClient }>();
 const { t } = useI18n();
@@ -14,6 +14,8 @@ const q = ref('');
 const limit = ref(5);
 // A similarity to try instead of the configured one; empty uses the configured.
 const tryMin = ref('');
+// Whether to try the reranker: as the tenant has it, forced on or forced off.
+const tryRerank = ref<Try>('default');
 const running = ref(false);
 const failed = ref(false);
 const result = ref<SearchResult | null>(null);
@@ -30,7 +32,12 @@ async function run() {
       failed.value = true;
       return;
     }
-    result.value = await props.client.search(text, limit.value, min);
+    result.value = await props.client.search(text, limit.value, {
+      ...(min !== undefined && { minSimilarity: min }),
+      ...(tryValue(tryRerank.value) !== undefined && {
+        rerank: tryValue(tryRerank.value) as boolean,
+      }),
+    });
     asked.value = text;
   } catch {
     failed.value = true;
@@ -77,6 +84,21 @@ const rank = (n: number) => (n > 0 ? `#${n}` : '—');
           :hint="t('tenant.knowledge.inspect.tryMinHint')"
         />
       </div>
+      <div class="col-12 col-sm-3">
+        <q-select
+          v-model="tryRerank"
+          dense
+          outlined
+          emit-value
+          map-options
+          :options="[
+            { value: 'default', label: t('tenant.knowledge.inspect.rerankDefault') },
+            { value: 'on', label: t('tenant.knowledge.inspect.rerankOn') },
+            { value: 'off', label: t('tenant.knowledge.inspect.rerankOff') },
+          ]"
+          :label="t('tenant.knowledge.inspect.rerank')"
+        />
+      </div>
       <div class="col-6 col-sm-auto">
         <IgButton
           variant="primary"
@@ -95,6 +117,9 @@ const rank = (n: number) => (n > 0 ? `#${n}` : '—');
       <IgAlert v-if="!result.by_meaning" tone="warn" class="q-mt-md">
         {{ t('tenant.knowledge.inspect.keywordsOnly') }}
       </IgAlert>
+      <div v-if="result.reranked" class="text-caption ig-muted q-mt-md">
+        {{ t('tenant.knowledge.inspect.wasReranked') }}
+      </div>
       <div class="text-caption ig-muted q-mt-md">
         {{
           result.min_similarity > 0 && result.by_meaning
@@ -121,6 +146,13 @@ const rank = (n: number) => (n > 0 ? `#${n}` : '—');
               :class="h.kept ? 'ig-pill--ok' : 'ig-pill--warn'"
             >
               {{ h.kept ? t('tenant.knowledge.inspect.given') : t('tenant.knowledge.inspect.cut') }}
+            </span>
+            <span
+              v-if="h.grade >= 0"
+              class="ig-pill"
+              :class="h.grade >= 2 ? 'ig-pill--ok' : 'ig-pill--warn'"
+            >
+              {{ t('tenant.knowledge.inspect.grade') }} {{ h.grade }}/3
             </span>
             <span v-if="h.similarity > 0" class="ig-pill">
               {{ t('tenant.knowledge.inspect.similarity') }} {{ h.similarity.toFixed(3) }}
