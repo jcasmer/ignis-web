@@ -143,6 +143,11 @@ const routes: RouteRecordRaw[] = [
         meta: { area: 'ops' },
       },
       {
+        path: 'queue',
+        component: () => import('@/pages/admin/QueuePage.vue'),
+        meta: { area: 'ops' },
+      },
+      {
         path: 'plans',
         component: () => import('@/pages/admin/PlansPage.vue'),
         meta: { area: 'ops' },

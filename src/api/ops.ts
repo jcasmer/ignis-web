@@ -147,6 +147,20 @@ export interface QueueStats {
   stuck: { id: string; type: string; lease_until: string }[];
 }
 
+/** A job of the queue as the Ignis team reads it: no payload, because it can hold what a contact wrote. */
+export interface QueueJob {
+  id: string;
+  type: string;
+  tenant_id?: string;
+  state: 'ready' | 'running' | 'done' | 'dead';
+  attempts: number;
+  max_attempts: number;
+  run_at: string;
+  created_at: string;
+  finished_at?: string;
+  last_error?: string;
+}
+
 export interface GrantInput {
   tenant_id: string;
   amount_micro: number;
@@ -259,6 +273,10 @@ export function opsApi(http: Http) {
     billing: (p: { from?: string; to?: string } = {}) =>
       http.get<BillingSummary>(`/ops/billing/summary${query(p)}`),
     queue: () => http.get<QueueStats>('/ops/queue'),
+    queueJobs: (p: { state?: string; cursor?: string; limit?: number } = {}) =>
+      http.get<{ items: QueueJob[]; next_cursor?: string }>(`/ops/queue/jobs${query(p)}`),
+    retryJob: (id: string) => http.post<void>(`/ops/queue/jobs/${t(id)}/retry`, {}),
+    discardJob: (id: string) => http.post<void>(`/ops/queue/jobs/${t(id)}/discard`, {}),
 
     packages: () => http.get<{ items: CreditPackage[] }>('/ops/credit-packages'),
     createPackage: (p: NewPackage) => http.post<CreditPackage>('/ops/credit-packages', p),

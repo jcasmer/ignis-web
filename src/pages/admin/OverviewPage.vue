@@ -218,6 +218,15 @@ const QUEUE_KEYS = ['ready', 'running', 'done', 'dead'] as const;
             >
               {{ t('admin.overview.stuck') }}: {{ queue.stuck.length }}
             </div>
+            <div class="q-mt-md">
+              <IgButton
+                :variant="queueBad ? 'primary' : 'secondary'"
+                block
+                icon="low_priority"
+                :to="queueBad ? '/admin/queue?state=dead' : '/admin/queue'"
+                :label="queueBad ? t('admin.overview.reviewJobs') : t('admin.overview.openQueue')"
+              />
+            </div>
           </template>
         </div>
       </div>

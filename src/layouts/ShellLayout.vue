@@ -31,6 +31,7 @@ const nav = computed<NavItem[]>(() =>
     ? [
         { to: '/admin', icon: 'space_dashboard', label: t('admin.nav.overview') },
         { to: '/admin/tenants', icon: 'domain', label: t('admin.nav.tenants') },
+        { to: '/admin/queue', icon: 'low_priority', label: t('admin.nav.queue') },
         { to: '/admin/demo', icon: 'play_circle', label: t('admin.nav.demo') },
         { to: '/admin/plans', icon: 'workspace_premium', label: t('admin.nav.plans') },
         { to: '/admin/packages', icon: 'inventory_2', label: t('admin.nav.packages') },
