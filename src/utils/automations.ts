@@ -118,6 +118,26 @@ export interface StepDraft {
   /** knowledge_search: what is looked for, and how many passages (empty: 4). */
   query: string;
   limit: string;
+  /** whatsapp_template: the template, who it goes to (empty: the contact) and its values. */
+  template: string;
+  to: string;
+  values: string[];
+  /** wait: how long, as typed, and in what unit. */
+  amount: string;
+  unit: WaitUnit;
+}
+
+export type WaitUnit = 'minutes' | 'hours' | 'days';
+
+export const WAIT_UNITS: Record<WaitUnit, number> = { minutes: 1, hours: 60, days: 1440 };
+export const MAX_WAIT_MINUTES = 7 * 24 * 60;
+export const MAX_WAITS = 2;
+
+/** A wait as a number and a unit, in the biggest unit that has no remainder. */
+export function waitParts(minutes: number): { amount: string; unit: WaitUnit } {
+  if (minutes % 1440 === 0) return { amount: String(minutes / 1440), unit: 'days' };
+  if (minutes % 60 === 0) return { amount: String(minutes / 60), unit: 'hours' };
+  return { amount: String(minutes), unit: 'minutes' };
 }
 
 export interface RuleDraft {
@@ -171,6 +191,11 @@ export function emptyStep(type: AutomationActionType): StepDraft {
     days: '7',
     query: '',
     limit: '',
+    template: '',
+    to: '',
+    values: [],
+    amount: '1',
+    unit: 'hours',
   };
 }
 
@@ -262,6 +287,14 @@ function stepToDraft(a: AutomationAction): StepDraft {
   step.days = a.days ? String(a.days) : '7';
   step.query = a.query ?? '';
   step.limit = a.limit ? String(a.limit) : '';
+  step.template = a.template ?? '';
+  step.to = a.to ?? '';
+  step.values = [...(a.values ?? [])];
+  if (a.minutes) {
+    const w = waitParts(a.minutes);
+    step.amount = w.amount;
+    step.unit = w.unit;
+  }
   return step;
 }
 
@@ -312,6 +345,12 @@ export type RuleError =
   | 'days'
   | 'knowledgeQuery'
   | 'knowledgeLimit'
+  | 'template'
+  | 'phone'
+  | 'templateValue'
+  | 'waitTime'
+  | 'waitLast'
+  | 'tooManyWaits'
   | 'unknownField'
   | 'unclosed'
   | 'undefinedVariable'
@@ -332,6 +371,14 @@ const LABEL = /^[A-Za-z][A-Za-z0-9 _-]{0,39}$/;
 const PLACEHOLDER = /\{\{\s*([A-Za-z_][A-Za-z0-9_.]*)\s*\}\}/g;
 const CLOCK = /^([01]\d|2[0-3]):[0-5]\d$/;
 const MAX_STEPS = 10;
+/** The steps that do something and keep nothing: they have no variable to name. */
+const NO_RESULT: AutomationActionType[] = [
+  'reply',
+  'email_business',
+  'handoff',
+  'whatsapp_template',
+  'wait',
+];
 
 function parseNumber(text: string): number | null {
   const clean = text.trim().replace(',', '.');
@@ -548,13 +595,34 @@ function buildStep(
       action.days = n;
       break;
     }
+    case 'whatsapp_template': {
+      if (!s.template) return fail('template');
+      const to = s.to.trim();
+      if (to && !/^[0-9]{8,15}$/.test(to)) return fail('phone');
+      if (!to && trigger !== 'message_received') return fail('phone');
+      if (s.values.length > 20) return fail('templateValue');
+      for (const [i, v] of s.values.entries()) {
+        if (!v.trim() || v.length > 1024) return fail('templateValue', String(i + 1));
+        const p = texts(v);
+        if (p) return fail(p);
+      }
+      action.template = s.template;
+      if (to) action.to = to;
+      action.values = s.values.map((v) => v.trim());
+      break;
+    }
+    case 'wait': {
+      const n = parseNumber(s.amount);
+      const minutes = n === null ? NaN : n * WAIT_UNITS[s.unit];
+      if (n === null || !Number.isInteger(minutes) || minutes < 1 || minutes > MAX_WAIT_MINUTES) {
+        return fail('waitTime');
+      }
+      action.minutes = minutes;
+      break;
+    }
   }
 
-  if (
-    s.type === 'connector_call'
-      ? !!s.as
-      : s.type !== 'reply' && s.type !== 'email_business' && s.type !== 'handoff'
-  ) {
+  if (s.type === 'connector_call' ? !!s.as : !NO_RESULT.includes(s.type)) {
     if (!IDENTIFIER.test(s.as)) return fail('variable');
     if (vars.has(s.as)) return fail('variableTaken', s.as);
     action.as = s.as;
@@ -621,6 +689,7 @@ export function draftToInput(d: RuleDraft): RuleResult {
   const actions: AutomationAction[] = [];
   let replies = 0;
   let handoffs = 0;
+  let waits = 0;
   for (const [i, s] of d.steps.entries()) {
     const guard = buildGuard(s, d.trigger, vars);
     if (guard.error)
@@ -642,6 +711,10 @@ export function draftToInput(d: RuleDraft): RuleResult {
     if (guard.guard) built.action.when = guard.guard;
     if (s.type === 'reply') replies++;
     if (s.type === 'handoff') handoffs++;
+    if (s.type === 'wait') {
+      waits++;
+      if (i === d.steps.length - 1) return { ok: false, error: 'waitLast', step: i };
+    }
     if (built.action.as) {
       vars.add(built.action.as);
       if (isAIAction(s.type)) fromModel.add(built.action.as);
@@ -650,6 +723,7 @@ export function draftToInput(d: RuleDraft): RuleResult {
   }
   if (replies > 1) return { ok: false, error: 'twoReplies' };
   if (handoffs > 1) return { ok: false, error: 'twoHandoffs' };
+  if (waits > MAX_WAITS) return { ok: false, error: 'tooManyWaits' };
 
   const input: AutomationInput = {
     name,
@@ -680,10 +754,7 @@ export function draftToInput(d: RuleDraft): RuleResult {
 export function varsBefore(steps: StepDraft[], index: number): string[] {
   const names: string[] = [];
   for (const s of steps.slice(0, index)) {
-    const takes =
-      s.type === 'connector_call'
-        ? !!s.as
-        : s.type !== 'reply' && s.type !== 'email_business' && s.type !== 'handoff';
+    const takes = s.type === 'connector_call' ? !!s.as : !NO_RESULT.includes(s.type);
     if (takes && s.as) names.push(s.as);
   }
   return names;

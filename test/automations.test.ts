@@ -12,6 +12,7 @@ import {
   ruleToDraft,
   usesAI,
   varsBefore,
+  waitParts,
   type RuleDraft,
   type StepDraft,
 } from '@/utils/automations';
@@ -556,5 +557,102 @@ describe('the knowledge search step', () => {
       op: 'equals',
       value: false,
     });
+  });
+});
+
+describe('the WhatsApp template step', () => {
+  const withTemplate = (over: Partial<StepDraft> = {}) =>
+    step('whatsapp_template', { template: 't1', values: ['{{contact.name}}', '1234'], ...over });
+
+  it('writes to the contact of the message when no number is given', () => {
+    const input = ok(rule({ steps: [withTemplate()] }));
+    expect(input.actions).toEqual([
+      { type: 'whatsapp_template', template: 't1', values: ['{{contact.name}}', '1234'] },
+    ]);
+  });
+
+  it('writes to a number of the business when one is given', () => {
+    const input = ok(rule({ steps: [withTemplate({ to: ' 573001234567 ' })] }));
+    expect(input.actions[0]).toMatchObject({ template: 't1', to: '573001234567' });
+  });
+
+  it('needs the number in a scheduled rule, which has no contact', () => {
+    const scheduled = (to: string) =>
+      rule({
+        trigger: 'schedule',
+        conditions: [],
+        steps: [withTemplate({ to, values: ['Dueño', '1'] })],
+      });
+    expect(error(scheduled(''))?.error).toBe('phone');
+    expect(ok(scheduled('573001234567')).actions[0]).toMatchObject({ to: '573001234567' });
+  });
+
+  it('refuses a missing template, a bad number and an empty value', () => {
+    expect(error(rule({ steps: [withTemplate({ template: '' })] }))?.error).toBe('template');
+    expect(error(rule({ steps: [withTemplate({ to: '+57 300' })] }))?.error).toBe('phone');
+    expect(error(rule({ steps: [withTemplate({ values: ['a', ' '] })] }))?.error).toBe(
+      'templateValue',
+    );
+    expect(error(rule({ steps: [withTemplate({ values: ['{{nope}}', 'b'] })] }))?.error).toBe(
+      'unknownField',
+    );
+  });
+
+  it('keeps nothing: it has no variable to name', () => {
+    const steps = [
+      step('connector_call', { connector: 'crm', operation: 'find', as: 'c' }),
+      withTemplate({ values: ['{{vars.c.name}}', '1'] }),
+    ];
+    expect(ok(rule({ steps })).actions[1]).not.toHaveProperty('as');
+    expect(varsBefore([withTemplate(), step('email_business')], 2)).toEqual([]);
+  });
+
+  it('comes back from the API as the same step', () => {
+    const stored = ok(rule({ steps: [withTemplate({ to: '573001234567' })] }));
+    const again = ok(
+      rule({ steps: ruleToDraft({ ...(stored as unknown as AutomationRule), id: 'x' }).steps }),
+    );
+    expect(again.actions).toEqual(stored.actions);
+  });
+});
+
+describe('the wait step', () => {
+  const wait = (amount: string, unit: StepDraft['unit']) => step('wait', { amount, unit });
+  const email = () => step('email_business', { subject: 'a', body: 'b' });
+
+  it('is written in minutes whatever unit it was typed in', () => {
+    const minutes = (amount: string, unit: StepDraft['unit']) =>
+      ok(rule({ steps: [wait(amount, unit), email()] })).actions[0]?.minutes;
+    expect(minutes('30', 'minutes')).toBe(30);
+    expect(minutes('2', 'hours')).toBe(120);
+    expect(minutes('1', 'days')).toBe(1440);
+    expect(minutes('7', 'days')).toBe(10080);
+  });
+
+  it('is a whole number of minutes between one and a week', () => {
+    for (const [amount, unit] of [
+      ['0', 'minutes'],
+      ['8', 'days'],
+      ['1,5', 'minutes'],
+      ['abc', 'hours'],
+      ['', 'hours'],
+    ] as const) {
+      expect(error(rule({ steps: [wait(amount, unit), email()] }))?.error).toBe('waitTime');
+    }
+  });
+
+  it('needs a step after it and at most two waits', () => {
+    expect(error(rule({ steps: [email(), wait('1', 'hours')] }))?.error).toBe('waitLast');
+    expect(
+      error(rule({ steps: [wait('1', 'hours'), wait('1', 'hours'), wait('1', 'hours'), email()] }))
+        ?.error,
+    ).toBe('tooManyWaits');
+  });
+
+  it('is read back in the biggest unit that has no remainder', () => {
+    expect(waitParts(30)).toEqual({ amount: '30', unit: 'minutes' });
+    expect(waitParts(120)).toEqual({ amount: '2', unit: 'hours' });
+    expect(waitParts(2880)).toEqual({ amount: '2', unit: 'days' });
+    expect(waitParts(90)).toEqual({ amount: '90', unit: 'minutes' });
   });
 });
