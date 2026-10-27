@@ -1,5 +1,6 @@
 import type { ModelProvider } from '@/api/automations';
 import { automationsClient } from './automations';
+import { assistantClient } from './assistant';
 import { knowledgeClient } from './knowledge';
 import type { Http } from './http';
 import type {
@@ -260,6 +261,8 @@ export function opsApi(http: Http) {
     /** The rules of a tenant, for an operator. */
     knowledgeOf: (id: string) =>
       knowledgeClient(http, `/ops/tenants/${t(id)}/knowledge`, { inspect: true }),
+    /** How the assistant of a tenant presents itself, for an operator. */
+    assistantOf: (id: string) => assistantClient(http, `/ops/tenants/${t(id)}/assistant`),
     automationsOf: (id: string) => automationsClient(http, `/ops/tenants/${t(id)}/automations`),
 
     mail: (id: string) => http.get<MailInput>(`/ops/tenants/${t(id)}/mail`),

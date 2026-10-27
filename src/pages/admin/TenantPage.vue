@@ -10,6 +10,7 @@ import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
 import IgSegmented from '@/components/IgSegmented.vue';
 import AutomationsPanel from '@/components/AutomationsPanel.vue';
+import AssistantProfilePanel from '@/components/AssistantProfilePanel.vue';
 import KnowledgePanel from '@/components/KnowledgePanel.vue';
 import ModelPicker from '@/components/ModelPicker.vue';
 import TenantConnectors from '@/components/TenantConnectors.vue';
@@ -31,11 +32,20 @@ const loading = ref(true);
 const failed = ref(false);
 const missing = ref(false);
 type Tab =
-  'plan' | 'security' | 'credits' | 'mail' | 'connectors' | 'knowledge' | 'automations' | 'privacy';
+  | 'plan'
+  | 'security'
+  | 'credits'
+  | 'mail'
+  | 'assistant'
+  | 'connectors'
+  | 'knowledge'
+  | 'automations'
+  | 'privacy';
 const tab = ref<Tab>('plan');
 const connectorsSeen = ref(false);
 const automationsSeen = ref(false);
 const knowledgeSeen = ref(false);
+const assistantSeen = ref(false);
 
 // --- load -------------------------------------------------------------------
 async function load() {
@@ -372,6 +382,10 @@ function onTab(v: Tab) {
     knowledgeSeen.value = true;
     planVersion.value++;
   }
+  if (v === 'assistant') {
+    assistantSeen.value = true;
+    planVersion.value++;
+  }
   if (v === 'security' && !mfaLoaded.value) void loadSecurity();
   if (v === 'credits' && !statement.value) void loadStatement();
   if (v === 'mail' && !mailLoaded.value) void loadMail();
@@ -439,6 +453,7 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
             { value: 'security', label: t('admin.tenant.tabs.security') },
             { value: 'credits', label: t('admin.tenant.tabs.credits') },
             { value: 'mail', label: t('admin.tenant.tabs.mail') },
+            { value: 'assistant', label: t('admin.tenant.tabs.assistant') },
             { value: 'connectors', label: t('admin.tenant.tabs.connectors') },
             { value: 'knowledge', label: t('admin.tenant.tabs.knowledge') },
             { value: 'automations', label: t('admin.tenant.tabs.automations') },
@@ -446,6 +461,12 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
           ]"
           @update:model-value="onTab"
         />
+      </div>
+
+      <!-- Assistant: how the assistant of the tenant presents itself -->
+      <div v-if="assistantSeen" v-show="tab === 'assistant'" :key="`as${planVersion}`">
+        <p class="ig-muted q-mt-none">{{ t('admin.tenant.assistantIntro') }}</p>
+        <AssistantProfilePanel :client="session.ops.assistantOf(id)" />
       </div>
 
       <!-- Connectors: loaded when the tab is first opened and kept after that -->

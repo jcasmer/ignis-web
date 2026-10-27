@@ -1,4 +1,5 @@
 import { automationsClient } from './automations';
+import { assistantClient } from './assistant';
 import { knowledgeClient } from './knowledge';
 import type { Http } from './http';
 
@@ -338,6 +339,7 @@ export function tenantApi(http: Http) {
     reject: (id: string) => http.post<void>(`/actions/${encodeURIComponent(id)}/reject`, {}),
 
     knowledge: knowledgeClient(http, '/knowledge'),
+    assistant: assistantClient(http, '/assistant'),
 
     channels: () => http.get<{ items: Channel[] }>('/channels'),
     configureChannel: (
