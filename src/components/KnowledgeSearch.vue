@@ -67,6 +67,8 @@ const rank = (n: number) => (n > 0 ? `#${n}` : '—');
       </div>
       <div class="col-6 col-sm-2">
         <q-select
+          behavior="menu"
+          popup-content-class="ig-menu"
           v-model="limit"
           dense
           outlined
@@ -86,6 +88,8 @@ const rank = (n: number) => (n > 0 ? `#${n}` : '—');
       </div>
       <div class="col-12 col-sm-3">
         <q-select
+          behavior="menu"
+          popup-content-class="ig-menu"
           v-model="tryRerank"
           dense
           outlined

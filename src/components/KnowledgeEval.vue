@@ -187,6 +187,8 @@ const gave = (n: number) =>
       <div class="row q-col-gutter-sm items-start q-mt-md">
         <div class="col-6 col-sm-3">
           <q-select
+            behavior="menu"
+            popup-content-class="ig-menu"
             v-model="limit"
             dense
             outlined
@@ -206,6 +208,8 @@ const gave = (n: number) =>
         </div>
         <div class="col-6 col-sm-3">
           <q-select
+            behavior="menu"
+            popup-content-class="ig-menu"
             v-model="tryRerank"
             dense
             outlined
@@ -217,6 +221,8 @@ const gave = (n: number) =>
         </div>
         <div class="col-6 col-sm-3">
           <q-select
+            behavior="menu"
+            popup-content-class="ig-menu"
             v-model="tryRewrite"
             dense
             outlined

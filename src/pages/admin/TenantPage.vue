@@ -647,6 +647,8 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
           <div class="row items-center q-col-gutter-sm">
             <div class="col-12 col-sm">
               <q-select
+                behavior="menu"
+                popup-content-class="ig-menu"
                 v-model="pickPlan"
                 outlined
                 dense

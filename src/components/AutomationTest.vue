@@ -80,6 +80,8 @@ async function run() {
         </div>
         <div class="col-6 col-sm-4">
           <q-select
+            behavior="menu"
+            popup-content-class="ig-menu"
             v-model="channel"
             dense
             outlined

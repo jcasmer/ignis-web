@@ -250,6 +250,8 @@ const DAYS = [1, 3, 7, 14, 30, 60, 90];
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-sm-5">
             <q-select
+              behavior="menu"
+              popup-content-class="ig-menu"
               :model-value="step.connector"
               dense
               outlined
@@ -262,6 +264,8 @@ const DAYS = [1, 3, 7, 14, 30, 60, 90];
           </div>
           <div class="col-12 col-sm-7">
             <q-select
+              behavior="menu"
+              popup-content-class="ig-menu"
               :model-value="step.operation"
               dense
               outlined
@@ -353,6 +357,8 @@ const DAYS = [1, 3, 7, 14, 30, 60, 90];
       <!-- WhatsApp template -->
       <template v-else-if="step.type === 'whatsapp_template'">
         <q-select
+          behavior="menu"
+          popup-content-class="ig-menu"
           :model-value="step.template"
           dense
           outlined
@@ -411,6 +417,8 @@ const DAYS = [1, 3, 7, 14, 30, 60, 90];
           </div>
           <div class="col-6 col-sm-5">
             <q-select
+              behavior="menu"
+              popup-content-class="ig-menu"
               v-model="step.unit"
               dense
               outlined
@@ -440,6 +448,8 @@ const DAYS = [1, 3, 7, 14, 30, 60, 90];
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-sm-5">
             <q-select
+              behavior="menu"
+              popup-content-class="ig-menu"
               v-model="step.days"
               dense
               outlined
@@ -539,6 +549,8 @@ const DAYS = [1, 3, 7, 14, 30, 60, 90];
             </div>
             <div class="col-6 col-sm-2">
               <q-select
+                behavior="menu"
+                popup-content-class="ig-menu"
                 v-model="f.type"
                 dense
                 outlined

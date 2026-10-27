@@ -370,6 +370,8 @@ const mono =
             <div class="row q-col-gutter-md">
               <div class="col-12 col-sm-4">
                 <q-select
+                  behavior="menu"
+                  popup-content-class="ig-menu"
                   v-model="draft.authType"
                   outlined
                   emit-value
@@ -423,6 +425,8 @@ const mono =
                 </div>
               </div>
               <q-select
+                behavior="menu"
+                popup-content-class="ig-menu"
                 v-model="preset"
                 outlined
                 emit-value
@@ -443,6 +447,8 @@ const mono =
               <div class="row q-col-gutter-md">
                 <div class="col-12 col-sm-4">
                   <q-select
+                    behavior="menu"
+                    popup-content-class="ig-menu"
                     v-model="draft.grant"
                     outlined
                     emit-value
@@ -565,6 +571,8 @@ const mono =
                     </div>
                     <div class="col-6 col-sm-2">
                       <q-select
+                        behavior="menu"
+                        popup-content-class="ig-menu"
                         v-model="o.method"
                         outlined
                         dense
@@ -574,6 +582,8 @@ const mono =
                     </div>
                     <div class="col-6 col-sm-3">
                       <q-select
+                        behavior="menu"
+                        popup-content-class="ig-menu"
                         v-model="o.risk"
                         outlined
                         dense

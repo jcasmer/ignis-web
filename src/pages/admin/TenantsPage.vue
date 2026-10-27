@@ -262,6 +262,8 @@ async function create() {
             <div v-if="plans.length">
               <div class="ig-eyebrow q-mb-xs">{{ t('admin.tenants.new.plan') }}</div>
               <q-select
+                behavior="menu"
+                popup-content-class="ig-menu"
                 v-model="form.planId"
                 outlined
                 dense

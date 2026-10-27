@@ -99,11 +99,45 @@
 
 .ig-menu {
   min-width: 248px;
+  max-width: min(92vw, 520px);
   border-radius: var(--ig-r-md);
   border: 1px solid var(--ig-line);
   background: var(--ig-surface);
   box-shadow: var(--ig-shadow-3);
   overflow: hidden;
+
+  // The options of a select and the entries of a menu read the same way.
+  .q-item {
+    min-height: 42px;
+    padding: 8px 14px;
+    color: var(--ig-text);
+    font-weight: 500;
+    line-height: 1.35;
+    white-space: normal;
+  }
+
+  .q-item:hover,
+  .q-item.q-manual-focusable--focused {
+    background: var(--ig-surface-2);
+  }
+
+  .q-item--active {
+    background: color-mix(in srgb, var(--ig-brand-500) 12%, var(--ig-surface));
+    color: var(--ig-brand-700);
+    font-weight: 600;
+  }
+
+  .q-virtual-scroll__content {
+    padding: 4px;
+  }
+
+  .q-item {
+    border-radius: var(--ig-r-sm);
+  }
+}
+
+body.body--dark .ig-menu .q-item--active {
+  color: var(--ig-brand-300);
 }
 
 // Bottom navigation on phones, clear of the home indicator.

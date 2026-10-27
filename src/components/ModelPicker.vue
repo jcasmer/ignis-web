@@ -48,6 +48,8 @@ function pickProvider(p: string) {
   <div class="row q-col-gutter-sm">
     <div class="col-12 col-sm-5">
       <q-select
+        behavior="menu"
+        popup-content-class="ig-menu"
         :model-value="provider"
         dense
         outlined
@@ -60,6 +62,8 @@ function pickProvider(p: string) {
     </div>
     <div class="col-12 col-sm-7">
       <q-select
+        behavior="menu"
+        popup-content-class="ig-menu"
         v-model="value"
         dense
         outlined

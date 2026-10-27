@@ -126,6 +126,8 @@ const series_cards = computed(() => allowed.value.map((s) => ({ id: s, items: ma
           </router-link>
         </nav>
         <q-select
+          behavior="menu"
+          popup-content-class="ig-menu"
           class="lt-md"
           dense
           outlined

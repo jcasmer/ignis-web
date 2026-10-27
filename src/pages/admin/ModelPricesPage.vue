@@ -245,6 +245,8 @@ async function save() {
             <div class="row q-col-gutter-md">
               <div class="col-12 col-sm-5">
                 <q-select
+                  behavior="menu"
+                  popup-content-class="ig-menu"
                   v-model="form.provider"
                   outlined
                   emit-value

@@ -101,6 +101,8 @@ function clear() {
       <div class="row q-col-gutter-sm items-end">
         <div v-if="operator" class="col-12 col-sm-6 col-md-3">
           <q-select
+            behavior="menu"
+            popup-content-class="ig-menu"
             v-model="tenant"
             outlined
             dense
@@ -113,6 +115,8 @@ function clear() {
         </div>
         <div class="col-12 col-sm-6 col-md-3">
           <q-select
+            behavior="menu"
+            popup-content-class="ig-menu"
             v-model="family"
             outlined
             dense
@@ -125,6 +129,8 @@ function clear() {
         </div>
         <div class="col-12 col-sm-6 col-md-2">
           <q-select
+            behavior="menu"
+            popup-content-class="ig-menu"
             v-model="outcome"
             outlined
             dense
