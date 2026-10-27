@@ -30,6 +30,10 @@ describe('knowledgeClient', () => {
       calls.push(`GET ${url}`);
       return Promise.resolve({ items: [] });
     },
+    put: (url: string) => {
+      calls.push(`PUT ${url}`);
+      return Promise.resolve({});
+    },
     post: (url: string) => {
       calls.push(`POST ${url}`);
       return Promise.resolve({});
@@ -56,14 +60,37 @@ describe('knowledgeClient', () => {
     await ops.evalCases?.();
     await ops.addEvalCase?.('¿aceptan visa?', 'tarjeta');
     await ops.deleteEvalCase?.('c 1');
-    await ops.runEval?.(3, 0.6);
+    await ops.runEval?.(3, { minSimilarity: 0.6, rerank: true, rewrite: false });
     await ops.runEval?.();
-    await ops.search?.('x', 5, 0.65);
+    await ops.search?.('x', 5, { minSimilarity: 0.65, rerank: false });
+    await ops.getOptions?.();
+    await ops.putOptions?.({ rewrite: true, rerank: null, min_similarity: 0.7 });
     expect(calls).toContain('GET /ops/tenants/t1/knowledge/eval/cases');
     expect(calls).toContain('POST /ops/tenants/t1/knowledge/eval/cases');
     expect(calls).toContain('DELETE /ops/tenants/t1/knowledge/eval/cases/c%201');
-    expect(calls).toContain('POST /ops/tenants/t1/knowledge/eval/run?limit=3&min_similarity=0.6');
+    expect(calls).toContain(
+      'POST /ops/tenants/t1/knowledge/eval/run?limit=3&min_similarity=0.6&rerank=true&rewrite=false',
+    );
     expect(calls).toContain('POST /ops/tenants/t1/knowledge/eval/run?limit=5');
-    expect(calls).toContain('GET /ops/tenants/t1/knowledge/search?q=x&limit=5&min_similarity=0.65');
+    expect(calls).toContain(
+      'GET /ops/tenants/t1/knowledge/search?q=x&limit=5&min_similarity=0.65&rerank=false',
+    );
+    expect(calls).toContain('GET /ops/tenants/t1/knowledge/options');
+    expect(calls).toContain('PUT /ops/tenants/t1/knowledge/options');
+  });
+});
+
+describe('the choices of a step', () => {
+  it('turn a switch into what is sent and back', async () => {
+    const { choiceOf, choiceValue, tryValue } = await import('@/utils/knowledge');
+    expect(choiceOf(null)).toBe('default');
+    expect(choiceOf(true)).toBe('on');
+    expect(choiceOf(false)).toBe('off');
+    expect(choiceValue('default')).toBeNull();
+    expect(choiceValue('on')).toBe(true);
+    expect(choiceValue('off')).toBe(false);
+    expect(tryValue('default')).toBeUndefined();
+    expect(tryValue('on')).toBe(true);
+    expect(tryValue('off')).toBe(false);
   });
 });

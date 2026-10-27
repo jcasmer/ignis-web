@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n';
 import type { EvalCase, EvalReport, KnowledgeClient } from '@/api/knowledge';
 import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
+import { tryValue, type Try } from '@/utils/knowledge';
 
 const props = defineProps<{ client: KnowledgeClient }>();
 const { t } = useI18n();
@@ -17,11 +18,15 @@ const failed = ref(false);
 
 const question = ref('');
 const expect = ref('');
+// The customer message before the question, when the question leans on it.
+const before = ref('');
 const nothing = ref(false);
 const adding = ref(false);
 
 const limit = ref(5);
 const tryMin = ref('');
+const tryRerank = ref<Try>('default');
+const tryRewrite = ref<Try>('default');
 const running = ref(false);
 const report = ref<EvalReport | null>(null);
 
@@ -47,10 +52,12 @@ async function add() {
     const c = await props.client.addEvalCase(
       question.value.trim(),
       nothing.value ? '' : expect.value.trim(),
+      before.value.trim(),
     );
     cases.value = [...cases.value, c];
     question.value = '';
     expect.value = '';
+    before.value = '';
     nothing.value = false;
     $q.notify({ type: 'positive', message: t('tenant.knowledge.eval.added') });
   } catch (e) {
@@ -86,7 +93,13 @@ async function run() {
   }
   running.value = true;
   try {
-    report.value = await props.client.runEval(limit.value, min);
+    const rerank = tryValue(tryRerank.value);
+    const rewrite = tryValue(tryRewrite.value);
+    report.value = await props.client.runEval(limit.value, {
+      ...(min !== undefined && { minSimilarity: min }),
+      ...(rerank !== undefined && { rerank }),
+      ...(rewrite !== undefined && { rewrite }),
+    });
   } catch {
     $q.notify({ type: 'negative', message: t('common.loadError') });
   } finally {
@@ -94,6 +107,11 @@ async function run() {
   }
 }
 
+const stepChoices = [
+  { value: 'default', label: t('tenant.knowledge.eval.stepDefault') },
+  { value: 'on', label: t('tenant.knowledge.eval.stepOn') },
+  { value: 'off', label: t('tenant.knowledge.eval.stepOff') },
+];
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const resultFor = (id: string) => report.value?.results.find((r) => r.case.id === id);
 const gave = (n: number) =>
@@ -110,7 +128,7 @@ const gave = (n: number) =>
     <p class="ig-muted text-caption q-mt-xs q-mb-md">{{ t('tenant.knowledge.eval.intro') }}</p>
 
     <div class="row q-col-gutter-sm items-start">
-      <div class="col-12 col-md-5">
+      <div class="col-12 col-md-6">
         <q-input
           v-model="question"
           dense
@@ -119,7 +137,7 @@ const gave = (n: number) =>
           :label="t('tenant.knowledge.eval.question')"
         />
       </div>
-      <div class="col-12 col-md-4">
+      <div class="col-12 col-md-6">
         <q-input
           v-model="expect"
           dense
@@ -130,15 +148,27 @@ const gave = (n: number) =>
           :hint="t('tenant.knowledge.eval.expectHint')"
         />
       </div>
-      <div class="col-12 col-md-auto">
-        <IgButton
-          variant="secondary"
-          icon="add"
-          :loading="adding"
-          :disable="!canAdd()"
-          :label="t('tenant.knowledge.eval.add')"
-          @click="add"
+      <div class="col-12">
+        <q-input
+          v-model="before"
+          dense
+          outlined
+          maxlength="500"
+          :label="t('tenant.knowledge.eval.before')"
+          :hint="t('tenant.knowledge.eval.beforeHint')"
         />
+      </div>
+      <div class="col-12">
+        <div>
+          <IgButton
+            variant="secondary"
+            icon="add"
+            :loading="adding"
+            :disable="!canAdd()"
+            :label="t('tenant.knowledge.eval.add')"
+            @click="add"
+          />
+        </div>
       </div>
     </div>
     <q-toggle v-model="nothing" dense class="q-mt-sm" :label="t('tenant.knowledge.eval.nothing')" />
@@ -172,6 +202,28 @@ const gave = (n: number) =>
             inputmode="decimal"
             :label="t('tenant.knowledge.eval.tryMin')"
             :hint="t('tenant.knowledge.eval.tryMinHint')"
+          />
+        </div>
+        <div class="col-6 col-sm-3">
+          <q-select
+            v-model="tryRerank"
+            dense
+            outlined
+            emit-value
+            map-options
+            :options="stepChoices"
+            :label="t('tenant.knowledge.eval.rerank')"
+          />
+        </div>
+        <div class="col-6 col-sm-3">
+          <q-select
+            v-model="tryRewrite"
+            dense
+            outlined
+            emit-value
+            map-options
+            :options="stepChoices"
+            :label="t('tenant.knowledge.eval.rewrite')"
           />
         </div>
         <div class="col-12 col-sm-auto">
@@ -220,6 +272,9 @@ const gave = (n: number) =>
             </div>
           </div>
         </div>
+        <div v-if="report.reranked" class="text-caption ig-muted q-mt-xs">
+          {{ t('tenant.knowledge.eval.wasReranked') }}
+        </div>
         <div class="text-caption ig-muted q-mt-xs">
           {{
             report.by_meaning
@@ -242,12 +297,22 @@ const gave = (n: number) =>
             <div class="col" style="min-width: 0">
               <!-- Text on purpose: it is what the team wrote. -->
               <div class="text-weight-bold" style="word-break: break-word">{{ c.question }}</div>
+              <div v-if="c.context" class="text-caption ig-muted" style="word-break: break-word">
+                {{ t('tenant.knowledge.eval.after', { t: c.context }) }}
+              </div>
               <div class="text-caption ig-muted" style="word-break: break-word">
                 {{
                   c.expect
                     ? t('tenant.knowledge.eval.expects', { t: c.expect })
                     : t('tenant.knowledge.eval.expectsNothing')
                 }}
+              </div>
+              <div
+                v-if="resultFor(c.id) && resultFor(c.id)?.query !== c.question"
+                class="text-caption q-mt-xs"
+                style="word-break: break-word"
+              >
+                {{ t('tenant.knowledge.eval.searched', { q: resultFor(c.id)?.query }) }}
               </div>
               <div v-if="resultFor(c.id)" class="row items-center q-gutter-xs q-mt-xs">
                 <span
