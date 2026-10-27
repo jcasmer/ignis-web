@@ -13,6 +13,8 @@ import OpenApiImport from '@/components/OpenApiImport.vue';
 import { useSessionStore } from '@/stores/session';
 import {
   AUTH_TYPES,
+  GRANTS,
+  OAUTH_PRESETS,
   draftFromConnector,
   effectiveRisk,
   emptyConnector,
@@ -59,7 +61,23 @@ const draft = ref<ConnectorDraft>(emptyConnector());
 /** The operation that is open in the editor. */
 const openOp = ref(0);
 
+// The system the OAuth2 connector talks to: choosing one fills in where its tokens come from.
+const preset = ref('');
+function usePreset(id: string) {
+  const p = OAUTH_PRESETS.find((x) => x.id === id);
+  if (!p) return;
+  draft.value.tokenUrl = p.tokenUrl;
+  draft.value.scheme = p.scheme;
+  if (p.baseUrl && isDefaultBase(draft.value.baseUrl)) draft.value.baseUrl = p.baseUrl;
+}
+
+const when = (iso: string) =>
+  new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' }).format(
+    new Date(iso),
+  );
+
 function start(c?: Connector) {
+  preset.value = '';
   draft.value = c ? draftFromConnector(c) : emptyConnector();
   openOp.value = 0;
   error.value = '';
@@ -223,6 +241,14 @@ const mono =
               ? t('admin.tenant.connectors.secretSet')
               : t('admin.tenant.connectors.noSecret')
           }}
+          <template v-if="c.auth.type === 'oauth2'">
+            ·
+            {{
+              c.token_expires_at
+                ? t('admin.tenant.connectors.oauth.tokenUntil', { at: when(c.token_expires_at) })
+                : t('admin.tenant.connectors.oauth.noTokenYet')
+            }}
+          </template>
         </div>
         <div v-for="o in c.operations" :key="o.name" class="row items-center q-py-xs no-wrap">
           <span class="ig-pill q-mr-sm" style="min-width: 58px; justify-content: center">
@@ -365,7 +391,10 @@ const mono =
                   :label="t('admin.tenant.connectors.header')"
                 />
               </div>
-              <div v-if="draft.authType !== 'none'" class="col-12 col-sm">
+              <div
+                v-if="draft.authType !== 'none' && draft.authType !== 'oauth2'"
+                class="col-12 col-sm"
+              >
                 <q-input
                   v-model="draft.secret"
                   outlined
@@ -382,6 +411,110 @@ const mono =
                       : t('admin.tenant.connectors.secretNew')
                   "
                 />
+              </div>
+            </div>
+            <div v-if="draft.authType === 'oauth2'" class="ig-oauth q-pa-md q-gutter-y-md">
+              <div>
+                <div class="text-subtitle2 text-weight-bold">
+                  {{ t('admin.tenant.connectors.oauth.title') }}
+                </div>
+                <div class="text-caption ig-muted">
+                  {{ t('admin.tenant.connectors.oauth.intro') }}
+                </div>
+              </div>
+              <q-select
+                v-model="preset"
+                outlined
+                emit-value
+                map-options
+                clearable
+                :options="OAUTH_PRESETS.map((p) => ({ value: p.id, label: p.label }))"
+                :label="t('admin.tenant.connectors.oauth.preset')"
+                :hint="t('admin.tenant.connectors.oauth.presetHint')"
+                @update:model-value="usePreset"
+              />
+              <q-input
+                v-model="draft.tokenUrl"
+                outlined
+                maxlength="500"
+                :label="t('admin.tenant.connectors.oauth.tokenUrl')"
+                :hint="t('admin.tenant.connectors.oauth.tokenUrlHint')"
+              />
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-sm-4">
+                  <q-select
+                    v-model="draft.grant"
+                    outlined
+                    emit-value
+                    map-options
+                    :options="
+                      GRANTS.map((g) => ({
+                        value: g,
+                        label: t(`admin.tenant.connectors.oauth.grants.${g}`),
+                      }))
+                    "
+                    :label="t('admin.tenant.connectors.oauth.grant')"
+                  />
+                </div>
+                <div class="col-12 col-sm-4">
+                  <q-input
+                    v-model="draft.scheme"
+                    outlined
+                    maxlength="32"
+                    :label="t('admin.tenant.connectors.oauth.scheme')"
+                    :hint="t('admin.tenant.connectors.oauth.schemeHint')"
+                  />
+                </div>
+                <div class="col-12 col-sm-4">
+                  <q-input
+                    v-model="draft.scope"
+                    outlined
+                    maxlength="200"
+                    :label="t('admin.tenant.connectors.oauth.scope')"
+                    :hint="t('admin.tenant.connectors.oauth.scopeHint')"
+                  />
+                </div>
+              </div>
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-sm-4">
+                  <q-input
+                    v-model="draft.clientId"
+                    outlined
+                    autocomplete="off"
+                    :label="t('admin.tenant.connectors.oauth.clientId')"
+                  />
+                </div>
+                <div class="col-12 col-sm-4">
+                  <q-input
+                    v-model="draft.clientSecret"
+                    outlined
+                    type="password"
+                    autocomplete="new-password"
+                    :label="t('admin.tenant.connectors.oauth.clientSecret')"
+                  />
+                </div>
+                <div v-if="draft.grant === 'refresh_token'" class="col-12 col-sm-4">
+                  <q-input
+                    v-model="draft.refreshToken"
+                    outlined
+                    type="password"
+                    autocomplete="new-password"
+                    :label="t('admin.tenant.connectors.oauth.refreshToken')"
+                    :hint="t('admin.tenant.connectors.oauth.refreshTokenHint')"
+                  />
+                </div>
+              </div>
+              <div class="text-caption ig-muted">
+                {{
+                  draft.hasSecret
+                    ? t('admin.tenant.connectors.oauth.keep')
+                    : t('admin.tenant.connectors.secretNew')
+                }}
+              </div>
+              <div v-if="draft.tokenExpiresAt" class="text-caption">
+                {{
+                  t('admin.tenant.connectors.oauth.tokenUntil', { at: when(draft.tokenExpiresAt) })
+                }}
               </div>
             </div>
             <q-toggle v-model="draft.enabled" :label="t('admin.tenant.connectors.enabled')" />
@@ -543,3 +676,11 @@ const mono =
     </q-dialog>
   </div>
 </template>
+
+<style scoped>
+.ig-oauth {
+  border: 1px solid var(--ig-line);
+  border-radius: var(--ig-r-sm);
+  background: var(--ig-surface-2);
+}
+</style>
