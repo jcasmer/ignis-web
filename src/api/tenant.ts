@@ -1,5 +1,6 @@
 import { automationsClient } from './automations';
 import { assistantClient } from './assistant';
+import { whatsappClient } from './whatsapp';
 import { knowledgeClient } from './knowledge';
 import type { Http } from './http';
 
@@ -340,6 +341,7 @@ export function tenantApi(http: Http) {
 
     knowledge: knowledgeClient(http, '/knowledge'),
     assistant: assistantClient(http, '/assistant'),
+    whatsapp: whatsappClient(http, '/whatsapp'),
 
     channels: () => http.get<{ items: Channel[] }>('/channels'),
     configureChannel: (

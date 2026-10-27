@@ -15,6 +15,8 @@ export class ApiError extends Error {
     readonly status: number,
     readonly code: string,
     message: string,
+    /** What the API explains about an input mistake, in words for the person; empty otherwise. */
+    readonly detail: string = '',
   ) {
     super(message);
     this.name = 'ApiError';
@@ -50,6 +52,7 @@ export interface Http {
 interface Problem {
   code?: string;
   title?: string;
+  detail?: string;
 }
 
 export function createHttp(options: HttpOptions): Http {
@@ -106,5 +109,10 @@ async function toError(res: Response): Promise<ApiError> {
   } catch {
     // not JSON: keep the status only.
   }
-  return new ApiError(res.status, problem.code ?? 'error', problem.title ?? res.statusText);
+  return new ApiError(
+    res.status,
+    problem.code ?? 'error',
+    problem.title ?? res.statusText,
+    problem.detail ?? '',
+  );
 }

@@ -57,6 +57,7 @@ const nav = computed<NavItem[]>(() =>
               { to: '/app/knowledge', icon: 'menu_book', label: t('tenant.nav.knowledge') },
               { to: '/app/credits', icon: 'toll', label: t('tenant.nav.credits') },
               { to: '/app/channels', icon: 'cell_tower', label: t('tenant.nav.channels') },
+              { to: '/app/whatsapp', icon: 'forum', label: t('tenant.nav.whatsapp') },
               { to: '/app/connectors', icon: 'hub', label: t('tenant.nav.connectors') },
               { to: '/app/mail', icon: 'mail_outline', label: t('tenant.nav.mail') },
               { to: '/app/privacy', icon: 'shield', label: t('tenant.nav.privacy') },
