@@ -1,3 +1,4 @@
+import { auditClient } from '@/api/audit';
 import type { ModelProvider } from '@/api/automations';
 import { automationsClient } from './automations';
 import { assistantClient } from './assistant';
@@ -241,6 +242,7 @@ export function opsApi(http: Http) {
     entitlements: (id: string) => http.get<Entitlements>(`/ops/tenants/${t(id)}/entitlements`),
     patchEntitlements: (id: string, patch: EntitlementsPatch) =>
       http.patch<Entitlements>(`/ops/tenants/${t(id)}/entitlements`, patch),
+    audit: auditClient(http, '/ops/audit'),
     plans: () => http.get<{ items: Plan[] }>('/ops/plans'),
     createPlan: (p: PlanInput) => http.post<Plan>('/ops/plans', p),
     replacePlan: (id: string, p: PlanInput) => http.put<Plan>(`/ops/plans/${t(id)}`, p),

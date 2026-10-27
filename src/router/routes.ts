@@ -111,6 +111,11 @@ const routes: RouteRecordRaw[] = [
         meta: { area: 'tenant', minRole: 'admin' },
       },
       {
+        path: 'audit',
+        component: () => import('@/pages/AuditPage.vue'),
+        meta: { area: 'tenant', minRole: 'admin' },
+      },
+      {
         path: 'help/:series?/:slug?',
         component: () => import('@/pages/ManualsPage.vue'),
         meta: { area: 'tenant' },
@@ -140,6 +145,11 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'plans',
         component: () => import('@/pages/admin/PlansPage.vue'),
+        meta: { area: 'ops' },
+      },
+      {
+        path: 'audit',
+        component: () => import('@/pages/AuditPage.vue'),
         meta: { area: 'ops' },
       },
       {

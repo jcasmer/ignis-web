@@ -35,6 +35,7 @@ const nav = computed<NavItem[]>(() =>
         { to: '/admin/plans', icon: 'workspace_premium', label: t('admin.nav.plans') },
         { to: '/admin/packages', icon: 'inventory_2', label: t('admin.nav.packages') },
         { to: '/admin/prices', icon: 'sell', label: t('admin.nav.prices') },
+        { to: '/admin/audit', icon: 'history', label: t('admin.nav.audit') },
         ...(session.operator?.role === 'super'
           ? [{ to: '/admin/operators', icon: 'groups', label: t('admin.nav.operators') }]
           : []),
@@ -63,6 +64,7 @@ const nav = computed<NavItem[]>(() =>
               { to: '/app/connectors', icon: 'hub', label: t('tenant.nav.connectors') },
               { to: '/app/mail', icon: 'mail_outline', label: t('tenant.nav.mail') },
               { to: '/app/privacy', icon: 'shield', label: t('tenant.nav.privacy') },
+              { to: '/app/audit', icon: 'history', label: t('tenant.nav.audit') },
             ]
           : []),
         { to: '/app/help', icon: 'help_outline', label: t('tenant.nav.help') },
