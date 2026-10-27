@@ -10,6 +10,7 @@ import EmptyState from '@/components/EmptyState.vue';
 import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
 import KnowledgeChunks from '@/components/KnowledgeChunks.vue';
+import KnowledgeEval from '@/components/KnowledgeEval.vue';
 import KnowledgeSearch from '@/components/KnowledgeSearch.vue';
 import { ACCEPT_ATTR, uploadProblem } from '@/utils/format';
 import { strategyKey } from '@/utils/knowledge';
@@ -180,6 +181,7 @@ async function reindexAll() {
     </div>
 
     <KnowledgeSearch v-if="client.search" :client="client" />
+    <KnowledgeEval v-if="client.runEval" :client="client" />
 
     <input
       ref="picker"

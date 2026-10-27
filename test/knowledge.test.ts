@@ -50,4 +50,20 @@ describe('knowledgeClient', () => {
     expect(calls).toContain('GET /ops/tenants/t1/knowledge/documents/doc%201/chunks');
     expect(calls).toContain('GET /ops/tenants/t1/knowledge/search?q=horario+s%C3%A1bado&limit=3');
   });
+
+  it('the operator client manages test questions and runs them with a similarity to try', async () => {
+    const ops = knowledgeClient(http, '/ops/tenants/t1/knowledge', { inspect: true });
+    await ops.evalCases?.();
+    await ops.addEvalCase?.('¿aceptan visa?', 'tarjeta');
+    await ops.deleteEvalCase?.('c 1');
+    await ops.runEval?.(3, 0.6);
+    await ops.runEval?.();
+    await ops.search?.('x', 5, 0.65);
+    expect(calls).toContain('GET /ops/tenants/t1/knowledge/eval/cases');
+    expect(calls).toContain('POST /ops/tenants/t1/knowledge/eval/cases');
+    expect(calls).toContain('DELETE /ops/tenants/t1/knowledge/eval/cases/c%201');
+    expect(calls).toContain('POST /ops/tenants/t1/knowledge/eval/run?limit=3&min_similarity=0.6');
+    expect(calls).toContain('POST /ops/tenants/t1/knowledge/eval/run?limit=5');
+    expect(calls).toContain('GET /ops/tenants/t1/knowledge/search?q=x&limit=5&min_similarity=0.65');
+  });
 });

@@ -12,6 +12,8 @@ const { t } = useI18n();
 
 const q = ref('');
 const limit = ref(5);
+// A similarity to try instead of the configured one; empty uses the configured.
+const tryMin = ref('');
 const running = ref(false);
 const failed = ref(false);
 const result = ref<SearchResult | null>(null);
@@ -23,7 +25,12 @@ async function run() {
   running.value = true;
   failed.value = false;
   try {
-    result.value = await props.client.search(text, limit.value);
+    const min = tryMin.value.trim() === '' ? undefined : Number(tryMin.value.replace(',', '.'));
+    if (min !== undefined && !(min >= 0 && min <= 1)) {
+      failed.value = true;
+      return;
+    }
+    result.value = await props.client.search(text, limit.value, min);
     asked.value = text;
   } catch {
     failed.value = true;
@@ -60,6 +67,16 @@ const rank = (n: number) => (n > 0 ? `#${n}` : '—');
           :label="t('tenant.knowledge.inspect.limit')"
         />
       </div>
+      <div class="col-6 col-sm-2">
+        <q-input
+          v-model="tryMin"
+          dense
+          outlined
+          inputmode="decimal"
+          :label="t('tenant.knowledge.inspect.tryMin')"
+          :hint="t('tenant.knowledge.inspect.tryMinHint')"
+        />
+      </div>
       <div class="col-6 col-sm-auto">
         <IgButton
           variant="primary"
@@ -78,14 +95,36 @@ const rank = (n: number) => (n > 0 ? `#${n}` : '—');
       <IgAlert v-if="!result.by_meaning" tone="warn" class="q-mt-md">
         {{ t('tenant.knowledge.inspect.keywordsOnly') }}
       </IgAlert>
+      <div class="text-caption ig-muted q-mt-md">
+        {{
+          result.min_similarity > 0 && result.by_meaning
+            ? t('tenant.knowledge.inspect.cutAt', { v: result.min_similarity })
+            : t('tenant.knowledge.inspect.noCut')
+        }}
+      </div>
       <div v-if="!result.items.length" class="ig-muted q-mt-md">
         {{ t('tenant.knowledge.inspect.none', { q: asked }) }}
       </div>
       <div v-else class="column q-gutter-y-sm q-mt-sm">
         <div class="text-caption ig-muted">{{ t('tenant.knowledge.inspect.scoreHint') }}</div>
-        <div v-for="(h, i) in result.items" :key="h.chunk_id" class="ig-card q-pa-sm">
+        <div
+          v-for="(h, i) in result.items"
+          :key="h.chunk_id"
+          class="ig-card q-pa-sm"
+          :style="h.kept ? '' : 'opacity: 0.6'"
+        >
           <div class="row items-center q-gutter-xs">
             <span class="ig-pill ig-pill--brand">#{{ i + 1 }}</span>
+            <span
+              v-if="result.by_meaning"
+              class="ig-pill"
+              :class="h.kept ? 'ig-pill--ok' : 'ig-pill--warn'"
+            >
+              {{ h.kept ? t('tenant.knowledge.inspect.given') : t('tenant.knowledge.inspect.cut') }}
+            </span>
+            <span v-if="h.similarity > 0" class="ig-pill">
+              {{ t('tenant.knowledge.inspect.similarity') }} {{ h.similarity.toFixed(3) }}
+            </span>
             <span class="ig-pill"
               >{{ t('tenant.knowledge.inspect.score') }} {{ scoreText(h.score) }}</span
             >
