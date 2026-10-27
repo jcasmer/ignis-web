@@ -1,6 +1,7 @@
 import type { ModelProvider } from '@/api/automations';
 import { automationsClient } from './automations';
 import { assistantClient } from './assistant';
+import { whatsappClient } from './whatsapp';
 import { knowledgeClient } from './knowledge';
 import type { Http } from './http';
 import type {
@@ -262,6 +263,8 @@ export function opsApi(http: Http) {
     knowledgeOf: (id: string) =>
       knowledgeClient(http, `/ops/tenants/${t(id)}/knowledge`, { inspect: true }),
     /** How the assistant of a tenant presents itself, for an operator. */
+    /** The WhatsApp templates of a tenant, for an operator. */
+    whatsappOf: (id: string) => whatsappClient(http, `/ops/tenants/${t(id)}/whatsapp`),
     assistantOf: (id: string) => assistantClient(http, `/ops/tenants/${t(id)}/assistant`),
     automationsOf: (id: string) => automationsClient(http, `/ops/tenants/${t(id)}/automations`),
 

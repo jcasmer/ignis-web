@@ -12,6 +12,7 @@ import IgSegmented from '@/components/IgSegmented.vue';
 import AutomationsPanel from '@/components/AutomationsPanel.vue';
 import AssistantProfilePanel from '@/components/AssistantProfilePanel.vue';
 import KnowledgePanel from '@/components/KnowledgePanel.vue';
+import WhatsAppTemplatesPanel from '@/components/WhatsAppTemplatesPanel.vue';
 import ModelPicker from '@/components/ModelPicker.vue';
 import TenantConnectors from '@/components/TenantConnectors.vue';
 import { useSessionStore } from '@/stores/session';
@@ -37,6 +38,7 @@ type Tab =
   | 'credits'
   | 'mail'
   | 'assistant'
+  | 'whatsapp'
   | 'connectors'
   | 'knowledge'
   | 'automations'
@@ -46,6 +48,7 @@ const connectorsSeen = ref(false);
 const automationsSeen = ref(false);
 const knowledgeSeen = ref(false);
 const assistantSeen = ref(false);
+const whatsappSeen = ref(false);
 
 // --- load -------------------------------------------------------------------
 async function load() {
@@ -386,6 +389,10 @@ function onTab(v: Tab) {
     assistantSeen.value = true;
     planVersion.value++;
   }
+  if (v === 'whatsapp') {
+    whatsappSeen.value = true;
+    planVersion.value++;
+  }
   if (v === 'security' && !mfaLoaded.value) void loadSecurity();
   if (v === 'credits' && !statement.value) void loadStatement();
   if (v === 'mail' && !mailLoaded.value) void loadMail();
@@ -454,6 +461,7 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
             { value: 'credits', label: t('admin.tenant.tabs.credits') },
             { value: 'mail', label: t('admin.tenant.tabs.mail') },
             { value: 'assistant', label: t('admin.tenant.tabs.assistant') },
+            { value: 'whatsapp', label: t('admin.tenant.tabs.whatsapp') },
             { value: 'connectors', label: t('admin.tenant.tabs.connectors') },
             { value: 'knowledge', label: t('admin.tenant.tabs.knowledge') },
             { value: 'automations', label: t('admin.tenant.tabs.automations') },
@@ -467,6 +475,12 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
       <div v-if="assistantSeen" v-show="tab === 'assistant'" :key="`as${planVersion}`">
         <p class="ig-muted q-mt-none">{{ t('admin.tenant.assistantIntro') }}</p>
         <AssistantProfilePanel :client="session.ops.assistantOf(id)" />
+      </div>
+
+      <!-- WhatsApp templates: the Ignis team sets up the account and the templates of the tenant -->
+      <div v-if="whatsappSeen" v-show="tab === 'whatsapp'" :key="`wa${planVersion}`">
+        <p class="ig-muted q-mt-none">{{ t('admin.tenant.whatsappIntro') }}</p>
+        <WhatsAppTemplatesPanel operator :client="session.ops.whatsappOf(id)" />
       </div>
 
       <!-- Connectors: loaded when the tab is first opened and kept after that -->
