@@ -177,6 +177,8 @@ function buildForTest(): { input?: AutomationInput; error?: string } {
             </div>
             <div class="col-12 col-sm-8">
               <q-select
+                behavior="menu"
+                popup-content-class="ig-menu"
                 v-model="draft.timezone"
                 outlined
                 dense
@@ -306,6 +308,8 @@ function buildForTest(): { input?: AutomationInput; error?: string } {
               :hint="t('tenant.automations.builder.cooldownHint')"
             />
             <q-select
+              behavior="menu"
+              popup-content-class="ig-menu"
               v-if="!onSchedule"
               v-model="draft.timezone"
               outlined

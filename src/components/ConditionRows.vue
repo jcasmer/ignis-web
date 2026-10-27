@@ -62,6 +62,8 @@ const isList = (c: ConditionDraft) => LIST_OPS.includes(c.op);
     <div v-for="(c, i) in model" :key="i" class="row q-col-gutter-sm items-start no-wrap-md">
       <div class="col-12 col-md-4">
         <q-select
+          behavior="menu"
+          popup-content-class="ig-menu"
           :model-value="c.field"
           dense
           outlined
@@ -77,6 +79,8 @@ const isList = (c: ConditionDraft) => LIST_OPS.includes(c.op);
       </div>
       <div class="col-12 col-sm-5 col-md-3">
         <q-select
+          behavior="menu"
+          popup-content-class="ig-menu"
           v-model="c.op"
           dense
           outlined

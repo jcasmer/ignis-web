@@ -82,6 +82,8 @@ async function save() {
       <div class="row q-col-gutter-md">
         <div class="col-12 col-md-6">
           <q-select
+            behavior="menu"
+            popup-content-class="ig-menu"
             v-model="rewrite"
             dense
             outlined
@@ -99,6 +101,8 @@ async function save() {
         </div>
         <div class="col-12 col-md-6">
           <q-select
+            behavior="menu"
+            popup-content-class="ig-menu"
             v-model="rerank"
             dense
             outlined
