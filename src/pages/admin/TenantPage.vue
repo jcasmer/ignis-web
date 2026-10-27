@@ -20,7 +20,14 @@ import { diffLimits, diffModules, usdToMicro } from '@/utils/plan';
 import { isEmail, isHttpsOrEmpty, parseRecipients } from '@/utils/validate';
 import { daysBefore, formatMicroUsd } from '@/utils/stats';
 
-const { t } = useI18n();
+const i18n = useI18n();
+const { t } = i18n;
+
+// The name a person reads for a module or a limit; the id stays beside it for whoever needs it.
+const catalogName = (kind: 'modules' | 'limits', id: string) => {
+  const key = `admin.catalog.${kind}.${id.replace(/\./g, '_')}`;
+  return i18n.te(key) ? t(key) : id;
+};
 const $q = useQuasar();
 const route = useRoute();
 const session = useSessionStore();
@@ -515,7 +522,13 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
           <div class="text-caption ig-muted q-mb-sm">{{ t('admin.tenant.plan.modulesHint') }}</div>
           <div class="row q-col-gutter-sm">
             <div v-for="m in catalog?.modules" :key="m.id" class="col-12 col-sm-6">
-              <q-checkbox v-model="modules" :val="m.id" color="primary" :label="m.id" />
+              <q-checkbox
+                v-model="modules"
+                :val="m.id"
+                color="primary"
+                :label="catalogName('modules', m.id)"
+              />
+              <span class="text-caption ig-muted ig-code q-ml-xs">{{ m.id }}</span>
               <div class="text-caption ig-muted q-ml-xl">{{ m.description }}</div>
             </div>
           </div>
@@ -526,7 +539,10 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
           <div class="text-caption ig-muted q-mb-md">{{ t('admin.tenant.plan.limitsHint') }}</div>
           <div v-for="d in defs" :key="d.key" class="row items-center q-col-gutter-sm q-mb-sm">
             <div class="col-12 col-sm-6">
-              <div class="text-weight-medium ig-code" style="font-size: 0.85rem">{{ d.key }}</div>
+              <div class="text-weight-medium">
+                {{ catalogName('limits', d.key) }}
+                <span class="text-caption ig-muted ig-code q-ml-xs">{{ d.key }}</span>
+              </div>
               <div class="text-caption ig-muted">{{ d.description }}</div>
             </div>
             <div class="col-8 col-sm-4">
