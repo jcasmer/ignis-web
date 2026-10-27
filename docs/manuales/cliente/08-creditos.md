@@ -20,3 +20,7 @@
 3. Cuando se confirme, la orden pasa a **Pagada** y el saldo sube.
 
 Si ves «Los pagos aún no están disponibles. Escríbenos y te ayudamos.», el cobro en línea no está activado todavía: contacta al equipo de Ignis. Sin crédito, el asistente no puede responder con IA.
+
+## Tu plan
+
+Arriba verás tu **plan**, su precio mensual y el **crédito de IA que incluye cada mes**. Ese crédito vence al final del mes y no se acumula; el que compras aparte dura hasta 6 meses y se gasta después del del plan.

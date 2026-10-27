@@ -128,6 +128,18 @@ export interface CreditLot {
   expires_at: string;
 }
 
+/** The plan of the signed-in business, and the AI credit it includes each period. */
+export interface OwnPlan {
+  plan: {
+    id: string;
+    name: string;
+    description: string;
+    price_minor: number;
+    currency: string;
+  } | null;
+  quota: { allowance_micro: number; plan_remaining_micro: number; renews_at: string };
+}
+
 export interface Balance {
   balance_micro: number;
   currency: 'USD';
@@ -363,6 +375,7 @@ export function tenantApi(http: Http) {
     eraseContact: (id: string) => http.del<void>(`/contacts/${encodeURIComponent(id)}`),
     erasures: (limit = 100) => http.get<{ items: Erasure[] }>(`/erasures${query({ limit })}`),
 
+    ownPlan: () => http.get<OwnPlan>('/tenant'),
     balance: () => http.get<Balance>('/credits/balance'),
     ledger: (p: { cursor?: string; limit?: number } = {}) =>
       http.get<Page<LedgerEntry> & { currency: 'USD' }>(`/credits/ledger${query(p)}`),

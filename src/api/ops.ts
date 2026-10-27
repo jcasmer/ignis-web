@@ -43,7 +43,34 @@ export interface Catalog {
   core_limits: LimitDef[];
 }
 
+/** What Ignis sells: modules, limits and AI credit with a monthly price. */
+export interface Plan {
+  id: string;
+  name: string;
+  description: string;
+  kind: 'standard' | 'custom';
+  /** Monthly price in minor units of `currency`. */
+  price_minor: number;
+  currency: string;
+  modules: string[];
+  /** -1 is unlimited; `llm.plan_allowance_micro` is the AI credit included each period. */
+  limits: Record<string, number>;
+  active: boolean;
+  tenants: number;
+  updated_at: string;
+}
+
+export type PlanInput = Omit<Plan, 'tenants' | 'updated_at' | 'id'> & { id?: string };
+
+/** The plan of a client and what it has apart from it. */
+export interface TenantPlan {
+  plan: Plan | null;
+  adjustments: { modules_add: string[]; modules_remove: string[]; limits: Record<string, number> };
+}
+
 export interface Entitlements {
+  /** Empty when the client is on no plan. */
+  plan_id: string;
   modules: string[];
   /** Only what was changed from the default. */
   limits: Record<string, number>;
@@ -67,6 +94,8 @@ export interface CreateTenantInput {
   name: string;
   owner_email: string;
   owner_password: string;
+  /** The plan sets the modules and limits; without one, modules are chosen by hand. */
+  plan_id?: string;
   modules?: string[];
 }
 
@@ -212,6 +241,12 @@ export function opsApi(http: Http) {
     entitlements: (id: string) => http.get<Entitlements>(`/ops/tenants/${t(id)}/entitlements`),
     patchEntitlements: (id: string, patch: EntitlementsPatch) =>
       http.patch<Entitlements>(`/ops/tenants/${t(id)}/entitlements`, patch),
+    plans: () => http.get<{ items: Plan[] }>('/ops/plans'),
+    createPlan: (p: PlanInput) => http.post<Plan>('/ops/plans', p),
+    replacePlan: (id: string, p: PlanInput) => http.put<Plan>(`/ops/plans/${t(id)}`, p),
+    tenantPlan: (id: string) => http.get<TenantPlan>(`/ops/tenants/${t(id)}/plan`),
+    assignPlan: (id: string, planId: string | null) =>
+      http.put<TenantPlan>(`/ops/tenants/${t(id)}/plan`, { plan_id: planId }),
     security: (id: string) => http.get<{ mfa_required: boolean }>(`/ops/tenants/${t(id)}/security`),
     setSecurity: (id: string, mfaRequired: boolean) =>
       http.put<void>(`/ops/tenants/${t(id)}/security`, { mfa_required: mfaRequired }),
