@@ -32,6 +32,7 @@ Cómo leerlos:
 4. [Los apartados generales del panel: Resumen, Demo, Paquetes, Precios de IA y Equipo](equipo/12-apartados-generales.md)
 5. [Conectar WhatsApp de principio a fin](equipo/13-conectar-whatsapp.md)
 6. [Preguntas y problemas frecuentes](equipo/14-problemas-frecuentes.md)
+7. [Correos de Ignis: activación, invitaciones y avisos de seguridad](equipo/15-correos-de-ignis.md)
 
 ## Serie del cliente
 

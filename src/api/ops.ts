@@ -90,11 +90,20 @@ export interface EntitlementsPatch {
   low_balance_micro?: number;
 }
 
+/** How the owner of a new client was invited. `link` comes only when the email could not go out. */
+export interface Activation {
+  sent: boolean;
+  link?: string;
+}
+
 export interface CreateTenantInput {
   slug: string;
   name: string;
   owner_email: string;
-  owner_password: string;
+  /** Left out, the owner is invited by email to choose it. */
+  owner_password?: string;
+  /** Make the second factor mandatory for the client; true by default when the owner is invited. */
+  require_mfa?: boolean;
   /** The plan sets the modules and limits; without one, modules are chosen by hand. */
   plan_id?: string;
   modules?: string[];
@@ -251,7 +260,10 @@ export function opsApi(http: Http) {
   return {
     tenants: (p: { cursor?: string; limit?: number } = {}) =>
       http.get<{ items: TenantListItem[]; next_cursor?: string }>(`/ops/tenants${query(p)}`),
-    createTenant: (input: CreateTenantInput) => http.post<{ id: string }>('/ops/tenants', input),
+    createTenant: (input: CreateTenantInput) =>
+      http.post<{ id: string; activation: Activation | null }>('/ops/tenants', input),
+    resendOwnerInvitation: (id: string, business: string) =>
+      http.post<Activation>(`/ops/tenants/${t(id)}/owner-invitation`, { business }),
     catalog: () => http.get<Catalog>('/ops/catalog'),
     entitlements: (id: string) => http.get<Entitlements>(`/ops/tenants/${t(id)}/entitlements`),
     patchEntitlements: (id: string, patch: EntitlementsPatch) =>

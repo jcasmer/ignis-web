@@ -15,6 +15,9 @@ const session = useSessionStore();
 const describe = useApiError();
 
 const area = route.meta.area ?? 'tenant';
+// A new account arrives by /activate; the same page, with the words of a welcome.
+const activating = route.path.endsWith('/activate');
+const key = (k: string) => `auth.${activating ? 'activatePage' : 'resetPage'}.${k}`;
 const prefix = area === 'ops' ? '/admin' : '';
 
 // The link carries the token in the address; take it into memory and remove it
@@ -49,11 +52,14 @@ async function submit() {
 <template>
   <q-form class="q-gutter-y-md" @submit.prevent="submit">
     <div>
-      <h1 class="text-h5 text-weight-bold q-my-none">{{ t('auth.resetPage.title') }}</h1>
+      <h1 class="text-h5 text-weight-bold q-my-none">{{ t(key('title')) }}</h1>
+      <p v-if="activating && !done" class="ig-muted q-mt-sm q-mb-none">
+        {{ t('auth.activatePage.intro') }}
+      </p>
     </div>
 
     <IgAlert v-if="error" tone="error">{{ error }}</IgAlert>
-    <IgAlert v-if="done" tone="success">{{ t('auth.resetPage.done') }}</IgAlert>
+    <IgAlert v-if="done" tone="success">{{ t(key('done')) }}</IgAlert>
     <IgAlert v-else-if="!token" tone="error">{{ t('auth.resetPage.missing') }}</IgAlert>
 
     <template v-if="!done && token">
@@ -80,13 +86,7 @@ async function submit() {
           />
         </template>
       </q-input>
-      <IgButton
-        type="submit"
-        variant="primary"
-        block
-        :label="t('auth.resetPage.save')"
-        :loading="busy"
-      />
+      <IgButton type="submit" variant="primary" block :label="t(key('save'))" :loading="busy" />
     </template>
 
     <div class="text-center">

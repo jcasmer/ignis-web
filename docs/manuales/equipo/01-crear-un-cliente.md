@@ -21,22 +21,26 @@ Cada negocio que usa Ignis es un **cliente** (en el código, un _tenant_). Al cr
 
 2. Llena el formulario:
 
-   | Campo                   | Qué poner                                                                                                        | Ejemplo                |
-   | ----------------------- | ---------------------------------------------------------------------------------------------------------------- | ---------------------- |
-   | **Nombre del negocio**  | El nombre comercial, como lo verán en el panel.                                                                  | `Café Luna`            |
-   | **Identificador**       | Una palabra corta en minúsculas, números y guiones. **No se puede cambiar después.** Debe ser único.             | `cafe-luna`            |
-   | **Correo del dueño**    | Con este correo entrará el dueño. Debe ser único en toda la plataforma.                                          | `dueno@cafeluna.co`    |
-   | **Contraseña inicial**  | Mínimo 12 caracteres. Pulsa **Generar** para crear una segura y **Copiar** para llevártela.                      | (generada)             |
-   | **Módulos contratados** | Qué capacidades tendrá. Con **Todos los módulos** encendido se contratan todas; apágalo para elegir una por una. | Todos (para el piloto) |
+   | Campo                                                | Qué poner                                                                                                                                                                                                                 | Ejemplo             |
+   | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+   | **Nombre del negocio**                               | El nombre comercial, como lo verán en el panel.                                                                                                                                                                           | `Café Luna`         |
+   | **Identificador**                                    | Una palabra corta en minúsculas, números y guiones. **No se puede cambiar después.** Debe ser único.                                                                                                                      | `cafe-luna`         |
+   | **Correo del dueño**                                 | Con este correo entrará el dueño. Debe ser único en toda la plataforma.                                                                                                                                                   | `dueno@cafeluna.co` |
+   | **Enviar al dueño un correo para activar su cuenta** | Encendido (lo recomendado): el dueño recibe un enlace y **él elige su contraseña**; tú nunca la ves. Apagado: aparece **Contraseña inicial** (mínimo 12 caracteres; **Generar** y **Copiar** ayudan) y se la entregas tú. | Encendido           |
+   | **Exigir el segundo factor desde el primer ingreso** | Solo con la invitación. Encendido, el dueño tendrá que configurar su app de autenticación al ingresar por primera vez.                                                                                                    | Encendido           |
+   | **Plan** y **Módulos contratados**                   | El plan define módulos, límites y crédito de IA (ver [Planes](12-apartados-generales.md#planes)). Sin plan, eliges los módulos a mano.                                                                                    | Con IA              |
 
-3. Pulsa **Nuevo cliente** (el botón del final). Verás «Cliente creado.».
-4. **Entrégale la contraseña al dueño por un canal seguro** (nunca por el mismo chat donde se la escribes a otros). Podrá cambiarla.
-5. La primera vez que el dueño entre, la consola le pedirá configurar su segundo factor si tú lo exiges (ver [Seguridad](03-pestana-seguridad.md)).
+3. Pulsa **Nuevo cliente** (el botón del final).
+   - **Con invitación:** verás «Cliente creado. Enviamos el correo de activación a …». El dueño recibe **«Activa tu cuenta de Ignis»** con un botón. El enlace **sirve una sola vez y vence en 3 días**.
+   - **Si el correo no pudo salir** (el correo de Ignis no está configurado o el proveedor falló), el cliente **sí queda creado** y aparece una ventana con el **enlace de activación** para que lo copies y se lo entregues por otro medio.
+4. **Qué hace el dueño:** abre el enlace → elige su contraseña (**Activa tu cuenta**) → ingresa → configura su **segundo factor** con una app de autenticación (si lo exigiste) y guarda sus códigos de recuperación. Recibe además un aviso de que su contraseña cambió.
+5. **Si el dueño perdió el correo o el enlace venció:** abre la ficha del cliente → pestaña [Seguridad](03-pestana-seguridad.md) → **Reenviar el correo de activación**. Los enlaces anteriores siguen sirviendo hasta que venzan.
 
 ### Errores frecuentes
 
 - «Ya existe un cliente con ese identificador o ese correo.»: cambia el identificador o usa otro correo.
-- «Revisa los datos: la contraseña necesita 12 caracteres o más.»
+- «Revisa los datos: la contraseña necesita 12 caracteres o más.»: solo si apagaste la invitación y escribiste la contraseña a mano.
+- «Sin correo configurado no se puede invitar»: la API no tiene un proveedor de correo; define la contraseña inicial o configura el correo ([Correos de Ignis](15-correos-de-ignis.md)).
 - «El identificador no es válido.»: usa solo minúsculas, números y guiones.
 
 ## Después de crear el cliente
