@@ -4,6 +4,6 @@
  * VITE_API_URL to the API origin, which must list this console in its
  * IGNIS_CORS_ORIGINS.
  */
-const origin = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '') ?? '';
+const origin = String(import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
 export const API_URL = `${origin}/api/v1`;
