@@ -138,6 +138,28 @@ export interface AutomationSampleEvent {
   contact?: { name: string; channel: string; is_new: boolean };
 }
 
+/** One question a template asks, in plain words. */
+export interface TemplateParam {
+  id: string;
+  label: string;
+  hint?: string;
+  /** How it is asked: one line, several lines, an hour (0 to 23), a time (HH:MM) or words separated by commas. */
+  kind: 'text' | 'longtext' | 'hour' | 'time' | 'list';
+  default: string;
+}
+
+/** A ready-made rule a tenant can start from. */
+export interface AutomationTemplate {
+  id: string;
+  name: string;
+  summary: string;
+  category: 'attention' | 'alerts' | 'reports';
+  trigger: AutomationTriggerType;
+  /** What the customer must have: the email of the business (mail) or the AI steps (ai). */
+  needs: ('mail' | 'ai')[];
+  params: TemplateParam[];
+}
+
 /** What the screens do with rules, for the tenant itself or, for an operator, for a tenant. */
 export interface AutomationsClient {
   list(): Promise<{ items: AutomationRule[] }>;
@@ -148,6 +170,10 @@ export interface AutomationsClient {
   test(rule: AutomationInput, event: AutomationSampleEvent): Promise<AutomationTrace>;
   /** The models a step may ask for, as "provider:model". */
   models(): Promise<{ items: string[]; providers: ModelProvider[] }>;
+  /** The ready-made rules. */
+  templates(): Promise<{ items: AutomationTemplate[] }>;
+  /** The rule a template makes with the answers given; nothing is saved. */
+  buildTemplate(id: string, values: Record<string, string>): Promise<AutomationRule>;
 }
 
 function query(params: Record<string, string | number | undefined>): string {
@@ -168,5 +194,8 @@ export function automationsClient(http: Http, base: string): AutomationsClient {
     runs: (p = {}) => http.get(`${base}/runs${query({ rule: p.rule, limit: p.limit })}`),
     test: (rule, event) => http.post(`${base}/test`, { rule, event }),
     models: () => http.get(`${base}/models`),
+    templates: () => http.get(`${base}/templates`),
+    buildTemplate: (id, values) =>
+      http.post(`${base}/templates/${encodeURIComponent(id)}/build`, { values }),
   };
 }

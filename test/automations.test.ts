@@ -397,6 +397,32 @@ describe('ruleToDraft', () => {
     expect(input.enabled).toBe(false);
   });
 
+  it('opens a step that decides on a yes/no field a model extracted', () => {
+    // What a template makes: a handoff only when the model saw the message as urgent.
+    const rule: AutomationRule = {
+      ...stored,
+      actions: [
+        {
+          type: 'ai_extract',
+          as: 'triage',
+          prompt: 'Decide.',
+          inputs: { Mensaje: '{{message.text}}' },
+          schema: { type: 'object', properties: { urgent: { type: 'boolean' } } },
+        },
+        {
+          type: 'handoff',
+          reason: 'Urgente',
+          when: { conditions: [{ field: 'vars.triage.urgent', op: 'equals', value: true }] },
+        },
+      ],
+    };
+    const input = ok(ruleToDraft(rule));
+    // The value goes back as the text "true", which the API reads as the yes/no it stands for.
+    expect(input.actions[1]?.when?.conditions).toEqual([
+      { field: 'vars.triage.urgent', op: 'equals', value: 'true' },
+    ]);
+  });
+
   it('opens a schedule with its time, days and zone', () => {
     const d = ruleToDraft({
       ...stored,

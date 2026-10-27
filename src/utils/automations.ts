@@ -206,7 +206,8 @@ export function usesAI(rule: Pick<AutomationInput, 'actions'>): boolean {
 
 function textOf(v: ConditionValue | undefined): string {
   if (Array.isArray(v)) return v.join(', ');
-  if (typeof v === 'boolean' || v === undefined) return '';
+  if (v === undefined) return '';
+  // A yes/no value is written as text: the field a model extracted is compared with "true" or "false".
   return String(v);
 }
 
