@@ -541,6 +541,7 @@ export default {
       retry: 'Reintentar',
       retryHint: 'Sigue desde el paso que falló; lo que ya salió bien no se repite.',
       retried: 'Listo: la ejecución se retomó.',
+      saveRejectedWith: 'No se pudo guardar: {why}',
       retryRefused: 'No se pudo reintentar.',
       retryRefusedWith: 'No se pudo reintentar: {why}',
       replyText: 'Texto de la respuesta',
@@ -1410,9 +1411,6 @@ export default {
       module: 'Tu plan no incluye WhatsApp. Habla con el equipo de Ignis.',
       moduleOperator:
         'El plan de este cliente no incluye el canal de WhatsApp: actívalo en la pestaña Plan.',
-      noAccount: 'Primero guarda el id de la cuenta de WhatsApp Business.',
-      noChannel: 'Primero conecta el número de WhatsApp en Canales.',
-      notApproved: 'Solo se puede enviar una plantilla aprobada por Meta.',
       exists: 'Ya tienes una plantilla con ese nombre en ese idioma.',
       gone: 'Esa plantilla ya no existe.',
       refusedWith: 'No se pudo: {why}',

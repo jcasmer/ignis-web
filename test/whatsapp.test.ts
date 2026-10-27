@@ -4,7 +4,6 @@ import {
   bodyProblem,
   emptyTemplate,
   fitExamples,
-  knownDetail,
   paramProblem,
   preview,
   slugify,
@@ -49,18 +48,6 @@ describe('the body of a template', () => {
     expect(bodyProblem('Hola {{1}}{{2}} ya')).toBe('adjacent');
     expect(bodyProblem('{{1}} hola {{2}} ya')).toBe('edge');
     expect(bodyProblem('Tu pedido {{1}} de {{2}}')).toBe('edge');
-  });
-});
-
-describe('the preconditions the API explains', () => {
-  it('are told apart from what Meta says', () => {
-    expect(knownDetail('first enter the id of your WhatsApp Business account')).toBe('noAccount');
-    expect(knownDetail('first connect your WhatsApp number in Channels')).toBe('noChannel');
-    expect(knownDetail('only an approved template can be sent; this one is pending')).toBe(
-      'notApproved',
-    );
-    expect(knownDetail('Meta said: Content in this language already exists.')).toBeNull();
-    expect(knownDetail('')).toBeNull();
   });
 });
 

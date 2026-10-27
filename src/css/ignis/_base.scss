@@ -10,18 +10,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-// A warm wash behind the whole app, fixed so it does not scroll with the content.
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(900px 480px at 8% -8%, rgb(var(--ig-brand-rgb) / 10%), transparent 60%),
-    radial-gradient(700px 420px at 100% 0%, rgb(var(--ig-brand-rgb) / 8%), transparent 60%);
-}
-
 h1,
 h2,
 h3,
@@ -79,4 +67,11 @@ a {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+// Figures line up in columns and cards.
+.ig-kpi__value,
+.q-table td,
+.ig-row {
+  font-variant-numeric: tabular-nums;
 }

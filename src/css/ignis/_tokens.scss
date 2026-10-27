@@ -1,56 +1,63 @@
-// The tokens of the Ignis design system. Components read these and never a raw
-// colour, so light and dark, and any later rebranding, change in one place.
+// The tokens of the Ignis design system ("Chispa"): graphite and warm neutrals, with the flame as
+// the one accent. Components read these and never a raw colour, so light and dark, and any later
+// rebranding, change in one place.
 :root {
-  // Brand scale: deep teal. It is the only brand hue; red is kept for errors.
-  --ig-brand-50: #effaf8;
-  --ig-brand-100: #d6f2ee;
-  --ig-brand-200: #a9e4dc;
-  --ig-brand-300: #5fd1c4;
-  --ig-brand-400: #22b5a6;
-  --ig-brand-500: #0d8f83;
-  --ig-brand-600: #0b7a70;
-  --ig-brand-700: #0a645c;
-  --ig-brand-rgb: 13 143 131;
-  --ig-brand-deep-rgb: 10 100 92;
+  // Brand scale: the ember. It is an accent (active navigation, focus, selection, the mark), not
+  // the colour of every button; the solid of a button is the graphite below. Red is for errors.
+  --ig-brand-50: #fff3eb;
+  --ig-brand-100: #ffe3d1;
+  --ig-brand-200: #ffc7a3;
+  --ig-brand-300: #ff9f66;
+  --ig-brand-400: #ff7a2f;
+  --ig-brand-500: #e8590c;
+  --ig-brand-600: #c2410c;
+  --ig-brand-700: #9a3412;
+  --ig-brand-rgb: 232 89 12;
+  --ig-brand-deep-rgb: 154 52 18;
   --ig-on-brand: #ffffff;
-  --ig-ink: #0c1a19;
+  --ig-ink: #171717;
+
+  // The solid of primary actions: graphite in light, near-white in dark.
+  --ig-solid: #171717;
+  --ig-solid-hover: #2e2e2c;
+  --ig-on-solid: #ffffff;
 
   // Sand: the warm secondary, for a second series or a quiet highlight.
-  --ig-sand: #c9a86a;
+  --ig-sand: #b99a5b;
 
   // Surfaces, from the page up.
-  --ig-page: #f2f6f6;
+  --ig-page: #f7f7f6;
   --ig-surface: #ffffff;
-  --ig-surface-2: #eaf1f0;
-  --ig-surface-3: #dfe9e7;
-  --ig-line: #dbe6e4;
-  --ig-line-strong: #c3d3d0;
+  --ig-surface-2: #f0f0ee;
+  --ig-surface-3: #e6e6e3;
+  --ig-line: #e5e5e2;
+  --ig-line-strong: #d0d0cc;
 
   // Text.
-  --ig-text: #0c1a19;
-  --ig-muted: #52706c;
-  --ig-faint: #7f9692;
-  --ig-link: #0a645c;
+  --ig-text: #171717;
+  --ig-muted: #5c5c58;
+  --ig-faint: #85857f;
+  --ig-link: #c2410c;
 
   // Status tints, for pills and alerts. Error is the only red in the product.
   --ig-ok: #1f7a55;
   --ig-ok-bg: rgb(31 122 85 / 12%);
-  --ig-warn: #a35200;
-  --ig-warn-bg: rgb(217 119 6 / 14%);
+  --ig-warn: #8a5a00;
+  --ig-warn-bg: rgb(202 138 4 / 15%);
   --ig-error: #c62828;
   --ig-error-bg: rgb(198 40 40 / 9%);
   --ig-info: #3b6fb6;
   --ig-info-bg: rgb(59 111 182 / 11%);
 
-  // Shape and depth.
-  --ig-r-sm: 10px;
-  --ig-r-md: 14px;
-  --ig-r-lg: 20px;
-  --ig-shadow-1: 0 1px 2px rgb(10 40 38 / 7%), 0 1px 1px rgb(10 40 38 / 4%);
-  --ig-shadow-2: 0 1px 2px rgb(10 40 38 / 6%), 0 10px 30px -12px rgb(10 40 38 / 20%);
-  --ig-shadow-3: 0 2px 4px rgb(10 40 38 / 8%), 0 24px 48px -16px rgb(10 40 38 / 30%);
-  --ig-glow: 0 8px 24px -8px rgb(var(--ig-brand-rgb) / 55%);
-  --ig-ring: 0 0 0 3px rgb(var(--ig-brand-rgb) / 28%);
+  // Shape and depth: tighter corners and flat, neutral shadows.
+  --ig-r-sm: 8px;
+  --ig-r-md: 12px;
+  --ig-r-lg: 16px;
+  --ig-shadow-1: 0 1px 2px rgb(0 0 0 / 6%);
+  --ig-shadow-2: 0 1px 2px rgb(0 0 0 / 5%), 0 8px 24px -14px rgb(0 0 0 / 18%);
+  --ig-shadow-3: 0 2px 4px rgb(0 0 0 / 6%), 0 24px 48px -20px rgb(0 0 0 / 28%);
+  --ig-glow: 0 0 0 0 transparent;
+  --ig-ring: 0 0 0 3px rgb(var(--ig-brand-rgb) / 26%);
 
   // Type.
   --ig-font: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -61,36 +68,39 @@
 }
 
 body.body--dark {
-  --ig-brand-50: #0c1f21;
-  --ig-brand-100: #0f2b2d;
-  --ig-brand-200: #144346;
-  --ig-brand-rgb: 34 181 166;
-  --ig-sand: #d9bd85;
+  --ig-brand-50: #1f120a;
+  --ig-brand-100: #2e1a0e;
+  --ig-brand-200: #4a2a14;
+  --ig-brand-rgb: 255 122 47;
+  --ig-sand: #cdb078;
 
-  --ig-page: #090e17;
-  --ig-surface: #101827;
-  --ig-surface-2: #172033;
-  --ig-surface-3: #202b42;
-  --ig-line: #232f47;
-  --ig-line-strong: #34425f;
+  --ig-solid: #ededec;
+  --ig-solid-hover: #ffffff;
+  --ig-on-solid: #0b0b0c;
 
-  --ig-text: #e8eef7;
-  --ig-muted: #9aa8c0;
-  --ig-faint: #6c7a94;
-  --ig-link: #4fd8c8;
+  --ig-page: #0b0b0c;
+  --ig-surface: #151516;
+  --ig-surface-2: #1d1d1f;
+  --ig-surface-3: #272729;
+  --ig-line: #272729;
+  --ig-line-strong: #3a3a3d;
+
+  --ig-text: #ededec;
+  --ig-muted: #a3a3a0;
+  --ig-faint: #6f6f6c;
+  --ig-link: #ff9f66;
 
   --ig-ok: #5fcf9f;
   --ig-ok-bg: rgb(95 207 159 / 14%);
-  --ig-warn: #f4b058;
-  --ig-warn-bg: rgb(244 176 88 / 14%);
+  --ig-warn: #f2c14e;
+  --ig-warn-bg: rgb(242 193 78 / 14%);
   --ig-error: #ff8a80;
   --ig-error-bg: rgb(255 138 128 / 12%);
   --ig-info: #8db6ee;
   --ig-info-bg: rgb(141 182 238 / 13%);
 
   --ig-shadow-1: 0 1px 2px rgb(0 0 0 / 45%);
-  --ig-shadow-2: 0 1px 2px rgb(0 0 0 / 40%), 0 14px 34px -14px rgb(0 0 0 / 70%);
-  --ig-shadow-3: 0 2px 4px rgb(0 0 0 / 50%), 0 28px 56px -18px rgb(0 0 0 / 85%);
-  --ig-glow: 0 8px 28px -8px rgb(var(--ig-brand-rgb) / 45%);
-  --ig-ring: 0 0 0 3px rgb(var(--ig-brand-rgb) / 38%);
+  --ig-shadow-2: 0 1px 2px rgb(0 0 0 / 40%), 0 14px 34px -16px rgb(0 0 0 / 75%);
+  --ig-shadow-3: 0 2px 4px rgb(0 0 0 / 50%), 0 28px 56px -20px rgb(0 0 0 / 85%);
+  --ig-ring: 0 0 0 3px rgb(var(--ig-brand-rgb) / 36%);
 }

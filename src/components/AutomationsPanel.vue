@@ -178,7 +178,12 @@ function refusal(e: unknown, input: AutomationInput): string {
     return notIncludedText(usesAI(input));
   }
   if (code === 'limit_exceeded') return t('tenant.automations.limit');
-  if ((e as { status?: number }).status === 400) return t('tenant.automations.saveRejected');
+  if ((e as { status?: number }).status === 400) {
+    const why = (e as { detail?: string }).detail;
+    return why
+      ? t('tenant.automations.saveRejectedWith', { why })
+      : t('tenant.automations.saveRejected');
+  }
   return t('tenant.automations.saveFailed');
 }
 

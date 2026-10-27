@@ -36,7 +36,11 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ig-faint);
+  color: var(--ig-brand-600);
+}
+
+body.body--dark .ig-eyebrow {
+  color: var(--ig-brand-300);
 }
 
 // A selected row: a quiet surface and a brand-coloured edge, in both themes.
