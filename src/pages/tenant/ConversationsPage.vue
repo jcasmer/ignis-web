@@ -270,6 +270,14 @@ onMounted(() => {
                   </div>
                   <!-- Plain text on purpose: a message is never rendered as HTML. -->
                   <div>{{ m.body }}</div>
+                  <!-- Titles of the documents, as text: they are what the business uploaded. -->
+                  <div v-if="m.sources.length" class="ig-sources q-mt-xs">
+                    <q-icon name="menu_book" size="14px" />
+                    <span class="ig-sources__label">{{ t('tenant.conversations.sources') }}</span>
+                    <span v-for="s in m.sources" :key="s.document_id + s.section" class="ig-pill">
+                      {{ s.title }}<template v-if="s.section"> · {{ s.section }}</template>
+                    </span>
+                  </div>
                   <div
                     v-if="m.flags.length"
                     class="text-caption q-mt-xs"

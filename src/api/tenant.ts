@@ -49,6 +49,8 @@ export interface ConversationMessage {
   body: string;
   status: 'received' | 'pending' | 'sent' | 'failed';
   flags: string[];
+  /** The documents an assistant reply was written from. */
+  sources: { document_id: string; title: string; section?: string }[];
   at: string;
 }
 

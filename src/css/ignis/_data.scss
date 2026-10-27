@@ -357,3 +357,17 @@ body.body--dark .ig-phone {
     transform: scale(0.98);
   }
 }
+
+// The documents a reply was written from, under the reply.
+.ig-sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  font-size: 0.78rem;
+  opacity: 0.92;
+
+  &__label {
+    font-weight: 600;
+  }
+}
