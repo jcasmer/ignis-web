@@ -1,4 +1,5 @@
 import { automationsClient } from './automations';
+import { knowledgeClient } from './knowledge';
 import type { Http } from './http';
 
 export interface StatsTotals {
@@ -315,19 +316,7 @@ export function tenantApi(http: Http) {
       http.post<PendingAction>(`/actions/${encodeURIComponent(id)}/approve`, {}),
     reject: (id: string) => http.post<void>(`/actions/${encodeURIComponent(id)}/reject`, {}),
 
-    documents: (p: { cursor?: string; limit?: number } = {}) =>
-      http.get<Page<KnowledgeDocument>>(`/knowledge/documents${query(p)}`),
-    uploadDocument: (file: File, title?: string) => {
-      const form = new FormData();
-      form.set('file', file);
-      if (title) form.set('title', title);
-      return http.post<KnowledgeDocument>('/knowledge/documents', form);
-    },
-    reindexDocument: (id: string) =>
-      http.post<void>(`/knowledge/documents/${encodeURIComponent(id)}/reindex`, {}),
-    reindexAll: () => http.post<{ documents: number }>('/knowledge/reindex', {}),
-    deleteDocument: (id: string) =>
-      http.del<void>(`/knowledge/documents/${encodeURIComponent(id)}`),
+    knowledge: knowledgeClient(http, '/knowledge'),
 
     channels: () => http.get<{ items: Channel[] }>('/channels'),
     configureChannel: (

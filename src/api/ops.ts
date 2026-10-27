@@ -1,5 +1,6 @@
 import type { ModelProvider } from '@/api/automations';
 import { automationsClient } from './automations';
+import { knowledgeClient } from './knowledge';
 import type { Http } from './http';
 import type {
   Connector,
@@ -257,6 +258,8 @@ export function opsApi(http: Http) {
       http.del<void>(`/ops/tenants/${t(id)}/connectors/${t(name)}`),
 
     /** The rules of a tenant, for an operator. */
+    knowledgeOf: (id: string) =>
+      knowledgeClient(http, `/ops/tenants/${t(id)}/knowledge`, { inspect: true }),
     automationsOf: (id: string) => automationsClient(http, `/ops/tenants/${t(id)}/automations`),
 
     mail: (id: string) => http.get<MailInput>(`/ops/tenants/${t(id)}/mail`),

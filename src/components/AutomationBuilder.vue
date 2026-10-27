@@ -44,6 +44,7 @@ const FIXED: AutomationActionType[] = [
   'connector_call',
   'handoff',
   'ignis_stats',
+  'knowledge_search',
 ];
 const WITH_AI: AutomationActionType[] = ['ai_analyze', 'ai_extract'];
 const DAYS = [1, 2, 3, 4, 5, 6, 7];

@@ -202,6 +202,40 @@ export default {
       empty: 'Aún no hay documentos',
       emptyHint:
         'Sube tu menú, tus precios o tus políticas para que el asistente responda con ellos.',
+      strategy: {
+        label: 'Cómo se partió:',
+        plain: 'por párrafos y frases (texto corrido)',
+        markdown: 'por títulos, con la ruta de títulos en cada fragmento',
+        table: 'por grupos de filas de cada hoja',
+        paged: 'por página',
+        embedded: 'indexado por significado y por palabras',
+      },
+      chunksList: {
+        show: 'Fragmentos',
+        hint: 'Así quedó partido el documento. Cada fragmento es lo que el asistente puede encontrar y leer.',
+        none: 'Este documento no tiene fragmentos.',
+        chars: 'caracteres',
+        embedded: 'por significado y palabras',
+        keywordOnly: 'solo por palabras',
+        more: 'Ver completo',
+        less: 'Ver menos',
+      },
+      inspect: {
+        title: 'Probar una búsqueda',
+        intro:
+          'Escribe una pregunta como la haría un cliente. Verás qué fragmentos encuentra el asistente, en qué orden y por qué.',
+        query: 'Pregunta',
+        limit: 'Cuántos',
+        run: 'Buscar',
+        none: 'No se encontró nada para "{q}".',
+        keywordsOnly:
+          'Esta búsqueda fue solo por palabras: el servicio de significado no respondió o los documentos se indexaron con otro modelo.',
+        scoreHint:
+          'El puntaje ordena los resultados de esta búsqueda; no se compara con el de otra. Cada ranking dice en qué lugar puso el fragmento (— si no lo encontró).',
+        score: 'Puntaje',
+        byMeaning: 'Significado',
+        byKeywords: 'Palabras',
+      },
     },
     credits: {
       title: 'Créditos',
@@ -346,6 +380,10 @@ export default {
           name: 'Leer la actividad',
           hint: 'Trae tus cifras: mensajes, contactos nuevos y traspasos.',
         },
+        knowledge_search: {
+          name: 'Consultar conocimiento',
+          hint: 'Busca en los documentos del negocio y guarda lo que encuentre.',
+        },
       },
       replyText: 'Texto de la respuesta',
       subject: 'Asunto',
@@ -390,6 +428,13 @@ export default {
         "Un nombre corto. Luego: {'{{vars.nombre}}'}, o {'{{vars.nombre.campo}}'} si extrae datos.",
       maxTokens: 'Largo máximo de la respuesta (opcional)',
       maxTokensHint: 'Entre 50 y 1500',
+      knowledgeQuery: 'Qué buscar',
+      knowledgeQueryHint:
+        "Admite campos, por ejemplo {'{{message.text}}'}. Los datos personales no se envían.",
+      knowledgeSaveAsHint:
+        "Luego: {'{{vars.nombre.text}}'} es lo encontrado y vars.nombre.found dice si hubo algo.",
+      knowledgeLimit: 'Cuántos fragmentos',
+      knowledgeLimitHint: 'De 1 a 8; vacío: 4',
       modelDefault: 'El del plan',
       fieldsAvailable: 'Puedes usar en los textos:',
       guard: {
@@ -516,6 +561,8 @@ export default {
         schemaValues: 'Los valores permitidos solo sirven para campos de texto',
         maxTokens: 'El largo máximo es un entero entre 50 y 1500.',
         days: 'Los días son un entero entre 1 y 90.',
+        knowledgeQuery: 'Escribe qué buscar en los documentos (hasta 500 caracteres).',
+        knowledgeLimit: 'Los fragmentos son un entero entre 1 y 8.',
         unknownField: 'Un texto usa un campo que esta regla no tiene.',
         unclosed: "Hay una llave {'{{'} sin cerrar en un texto.",
         undefinedVariable: 'Un texto usa un resultado que ningún paso anterior guarda.',
@@ -809,9 +856,12 @@ export default {
         credits: 'Créditos',
         mail: 'Correo',
         connectors: 'Conectores',
+        knowledge: 'Conocimiento (RAG)',
         automations: 'Automatizaciones',
         privacy: 'Privacidad',
       },
+      knowledgeIntro:
+        'Los documentos de este cliente los subes e indexas tú. Las automatizaciones y el asistente leen lo que quede indexado aquí.',
       connectors: {
         title: 'Conectores',
         hint: 'Los sistemas del cliente a los que su asistente puede llegar. Cada operación se vuelve una herramienta del asistente.',

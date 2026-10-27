@@ -36,7 +36,8 @@ export const DEFAULT_TIMEZONE = 'America/Bogota';
 export type FieldKind = 'text' | 'number' | 'flag' | 'date';
 
 export function fieldKind(field: string): FieldKind {
-  if (field === 'contact.is_new') return 'flag';
+  // What a search of the knowledge base says about whether it found anything.
+  if (field === 'contact.is_new' || /^vars\.[a-z][a-z0-9_]*\.found$/.test(field)) return 'flag';
   if (field === 'time.weekday' || field === 'time.hour') return 'number';
   if (field === 'time.date') return 'date';
   return 'text';
@@ -51,7 +52,8 @@ const OPS: Record<FieldKind, ConditionOp[]> = {
 
 /** The comparisons offered for a field. A variable of an earlier step is free text. */
 export function opsFor(field: string): ConditionOp[] {
-  if (field.startsWith('vars.')) return [...OPS.text, 'gte', 'lte', 'gt', 'lt'];
+  if (field.startsWith('vars.') && fieldKind(field) !== 'flag')
+    return [...OPS.text, 'gte', 'lte', 'gt', 'lt'];
   return OPS[fieldKind(field)];
 }
 
@@ -113,6 +115,9 @@ export interface StepDraft {
   model: string;
   maxTokens: string;
   days: string;
+  /** knowledge_search: what is looked for, and how many passages (empty: 4). */
+  query: string;
+  limit: string;
 }
 
 export interface RuleDraft {
@@ -164,6 +169,8 @@ export function emptyStep(type: AutomationActionType): StepDraft {
     model: '',
     maxTokens: '',
     days: '7',
+    query: '',
+    limit: '',
   };
 }
 
@@ -252,6 +259,8 @@ function stepToDraft(a: AutomationAction): StepDraft {
   step.model = a.model ?? '';
   step.maxTokens = a.max_tokens ? String(a.max_tokens) : '';
   step.days = a.days ? String(a.days) : '7';
+  step.query = a.query ?? '';
+  step.limit = a.limit ? String(a.limit) : '';
   return step;
 }
 
@@ -300,6 +309,8 @@ export type RuleError =
   | 'schemaValues'
   | 'maxTokens'
   | 'days'
+  | 'knowledgeQuery'
+  | 'knowledgeLimit'
   | 'unknownField'
   | 'unclosed'
   | 'undefinedVariable'
@@ -517,6 +528,19 @@ function buildStep(
       }
       break;
     }
+    case 'knowledge_search': {
+      const query = s.query.trim();
+      if (!query || query.length > 500) return fail('knowledgeQuery');
+      const p = texts(query);
+      if (p) return fail(p);
+      action.query = query;
+      if (s.limit.trim()) {
+        const n = parseNumber(s.limit);
+        if (n === null || !Number.isInteger(n) || n < 1 || n > 8) return fail('knowledgeLimit');
+        action.limit = n;
+      }
+      break;
+    }
     case 'ignis_stats': {
       const n = parseNumber(s.days);
       if (n === null || !Number.isInteger(n) || n < 1 || n > 90) return fail('days');
@@ -670,6 +694,7 @@ export function extractedFields(steps: StepDraft[], index: number): string[] {
   for (const s of steps.slice(0, index)) {
     if (s.type === 'ai_extract' && s.as)
       for (const f of s.fields) if (f.name) out.push(`vars.${s.as}.${f.name}`);
+    if (s.type === 'knowledge_search' && s.as) out.push(`vars.${s.as}.found`, `vars.${s.as}.text`);
   }
   return out;
 }
