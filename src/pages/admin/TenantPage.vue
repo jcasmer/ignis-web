@@ -4,7 +4,15 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
-import type { Catalog, Entitlements, LimitDef, Statement, TenantListItem } from '@/api/ops';
+import type {
+  Catalog,
+  Entitlements,
+  LimitDef,
+  Plan,
+  Statement,
+  TenantListItem,
+  TenantPlan,
+} from '@/api/ops';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
@@ -17,6 +25,8 @@ import ModelPicker from '@/components/ModelPicker.vue';
 import TenantConnectors from '@/components/TenantConnectors.vue';
 import { useSessionStore } from '@/stores/session';
 import { diffLimits, diffModules, usdToMicro } from '@/utils/plan';
+import { creditOf } from '@/utils/plans';
+import { formatMinor } from '@/utils/format';
 import { isEmail, isHttpsOrEmpty, parseRecipients } from '@/utils/validate';
 import { daysBefore, formatMicroUsd } from '@/utils/stats';
 
@@ -36,6 +46,8 @@ const id = String(route.params.id);
 const tenant = ref<TenantListItem | null>(null);
 const catalog = ref<Catalog | null>(null);
 const ent = ref<Entitlements | null>(null);
+const tplan = ref<TenantPlan | null>(null);
+const allPlans = ref<Plan[]>([]);
 const loading = ref(true);
 const failed = ref(false);
 const missing = ref(false);
@@ -62,11 +74,16 @@ async function load() {
   loading.value = true;
   failed.value = false;
   try {
-    const [list, cat, e] = await Promise.all([
+    const [list, cat, e, tp, pl] = await Promise.all([
       session.ops.tenants({ limit: 200 }),
       session.ops.catalog(),
       session.ops.entitlements(id),
+      session.ops.tenantPlan(id),
+      session.ops.plans(),
     ]);
+    tplan.value = tp;
+    allPlans.value = pl.items;
+    pickPlan.value = tp.plan?.id ?? '';
     tenant.value = list.items.find((x) => x.id === id) ?? null;
     missing.value = tenant.value === null;
     catalog.value = cat;
@@ -80,6 +97,78 @@ async function load() {
 }
 
 // --- plan ---------------------------------------------------------------------
+/** The plan chosen in the selector; empty is no plan. */
+const pickPlan = ref('');
+const assignOpen = ref(false);
+const assigning = ref(false);
+
+// A plan taken off sale is still shown for the client that has it, but cannot be given to another.
+const planOptions = computed(() => [
+  { label: t('admin.tenant.planCard.noPlan'), value: '' },
+  ...allPlans.value
+    .filter((p) => p.active || p.id === tplan.value?.plan?.id)
+    .map((p) => ({
+      label: `${p.name} · ${formatMinor(p.price_minor, p.currency)}${p.active ? '' : ` (${t('admin.tenant.planCard.withdrawnNote')})`}`,
+      value: p.id,
+    })),
+]);
+const pickedPlan = computed(() => allPlans.value.find((p) => p.id === pickPlan.value));
+const planChanged = computed(() => pickPlan.value !== (tplan.value?.plan?.id ?? ''));
+
+const adjustLines = computed(() => {
+  const a = tplan.value?.adjustments;
+  const p = tplan.value?.plan;
+  if (!a || !p) return [];
+  const lines: string[] = [];
+  if (a.modules_add.length)
+    lines.push(
+      t('admin.tenant.planCard.added', {
+        list: a.modules_add.map((m) => catalogName('modules', m)).join(', '),
+      }),
+    );
+  if (a.modules_remove.length)
+    lines.push(
+      t('admin.tenant.planCard.removed', {
+        list: a.modules_remove.map((m) => catalogName('modules', m)).join(', '),
+      }),
+    );
+  for (const [k, v] of Object.entries(a.limits))
+    lines.push(
+      t('admin.tenant.planCard.limit', {
+        name: catalogName('limits', k),
+        value: v === -1 ? t('admin.tenant.plan.unlimited') : v,
+        plan:
+          p.limits[k] === undefined
+            ? t('admin.tenant.plan.default')
+            : p.limits[k] === -1
+              ? t('admin.tenant.plan.unlimited')
+              : p.limits[k],
+      }),
+    );
+  return lines;
+});
+
+async function assignPlan() {
+  assigning.value = true;
+  try {
+    tplan.value = await session.ops.assignPlan(id, pickPlan.value || null);
+    ent.value = await session.ops.entitlements(id);
+    const list = await session.ops.plans();
+    allPlans.value = list.items;
+    planVersion.value++;
+    mfaLoaded.value = false;
+    mailLoaded.value = false;
+    privacyLoaded.value = false;
+    statement.value = null;
+    resetPlan();
+    assignOpen.value = false;
+    $q.notify({ type: 'positive', message: t('admin.tenant.planCard.assigned') });
+  } catch {
+    $q.notify({ type: 'negative', message: t('admin.tenant.planCard.failed') });
+  } finally {
+    assigning.value = false;
+  }
+}
 const modules = ref<string[]>([]);
 /** The limits that differ from the default, edited in place. */
 const overrides = ref<Record<string, number>>({});
@@ -184,6 +273,7 @@ async function savePlan() {
   saving.value = true;
   try {
     ent.value = await session.ops.patchEntitlements(id, planPatch.value);
+    tplan.value = await session.ops.tenantPlan(id);
     // The tabs that depend on the modules loaded with the old plan: they load again.
     planVersion.value++;
     // What depends on the plan is read again the next time its tab opens.
@@ -518,6 +608,66 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
       <!-- Plan -->
       <div v-if="tab === 'plan' && ent" class="column q-gutter-y-md">
         <div class="ig-card q-pa-lg">
+          <div class="ig-section-title">{{ t('admin.tenant.planCard.title') }}</div>
+          <div v-if="!tplan?.plan" class="text-body2 ig-muted q-mb-md">
+            {{ t('admin.tenant.planCard.none') }}
+          </div>
+          <div v-else class="q-mb-md">
+            <div class="text-subtitle1 text-weight-bold">
+              {{ tplan.plan.name }}
+              <span class="text-body2 ig-muted q-ml-sm">
+                {{
+                  t('admin.tenant.planCard.priceAt', {
+                    price: formatMinor(tplan.plan.price_minor, tplan.plan.currency),
+                  })
+                }}
+              </span>
+            </div>
+            <div v-if="tplan.plan.description" class="text-body2 ig-muted">
+              {{ tplan.plan.description }}
+            </div>
+            <div v-if="creditOf(tplan.plan) > 0" class="text-body2 q-mt-xs">
+              {{
+                t('admin.tenant.planCard.includes', {
+                  amount: formatMicroUsd(creditOf(tplan.plan)),
+                })
+              }}
+            </div>
+            <div v-if="adjustLines.length" class="q-mt-md">
+              <span class="ig-pill ig-pill--brand">{{ t('admin.tenant.planCard.apart') }}</span>
+              <ul class="q-my-sm q-pl-md">
+                <li v-for="l in adjustLines" :key="l" class="text-body2">{{ l }}</li>
+              </ul>
+              <div class="text-caption ig-muted">{{ t('admin.tenant.planCard.apartHint') }}</div>
+            </div>
+            <div v-else class="text-caption ig-muted q-mt-sm">
+              {{ t('admin.tenant.planCard.followsPlan') }}
+            </div>
+          </div>
+          <div class="row items-center q-col-gutter-sm">
+            <div class="col-12 col-sm">
+              <q-select
+                v-model="pickPlan"
+                outlined
+                dense
+                emit-value
+                map-options
+                :options="planOptions"
+                :label="t('admin.tenant.planCard.pick')"
+              />
+            </div>
+            <div class="col-12 col-sm-auto">
+              <IgButton
+                variant="primary"
+                :disable="!planChanged"
+                :label="t('admin.tenant.planCard.assign')"
+                @click="assignOpen = true"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="ig-card q-pa-lg">
           <div class="ig-section-title">{{ t('admin.tenant.plan.modules') }}</div>
           <div class="text-caption ig-muted q-mb-sm">{{ t('admin.tenant.plan.modulesHint') }}</div>
           <div class="row q-col-gutter-sm">
@@ -811,6 +961,23 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
       :confirm-label="t('admin.tenant.plan.save')"
       :cancel-label="t('common.cancel')"
       @confirm="savePlan"
+    />
+    <ConfirmDialog
+      v-model="assignOpen"
+      :loading="assigning"
+      :title="
+        pickedPlan
+          ? t('admin.tenant.planCard.confirmTitle', { name: pickedPlan.name })
+          : t('admin.tenant.planCard.confirmNone')
+      "
+      :message="
+        pickedPlan
+          ? t('admin.tenant.planCard.confirmBody')
+          : t('admin.tenant.planCard.confirmNoneBody')
+      "
+      :confirm-label="t('admin.tenant.planCard.assign')"
+      :cancel-label="t('common.cancel')"
+      @confirm="assignPlan"
     />
     <ConfirmDialog
       v-model="grantOpen"

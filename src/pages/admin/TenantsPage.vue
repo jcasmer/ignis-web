@@ -4,11 +4,12 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { ApiError } from '@/api/http';
-import type { Catalog, TenantListItem } from '@/api/ops';
+import type { Catalog, Plan, TenantListItem } from '@/api/ops';
 import EmptyState from '@/components/EmptyState.vue';
 import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
 import { useSessionStore } from '@/stores/session';
+import { formatMinor } from '@/utils/format';
 import { generatePassword, SLUG_PATTERN, slugify } from '@/utils/plan';
 
 const { t } = useI18n();
@@ -18,6 +19,7 @@ const session = useSessionStore();
 const tenants = ref<TenantListItem[]>([]);
 const cursor = ref<string | undefined>();
 const catalog = ref<Catalog | null>(null);
+const plans = ref<Plan[]>([]);
 const loading = ref(true);
 const failed = ref(false);
 const search = ref('');
@@ -43,6 +45,7 @@ onMounted(async () => {
   void load();
   try {
     catalog.value = await session.ops.catalog();
+    plans.value = (await session.ops.plans()).items.filter((p) => p.active);
   } catch {
     // The form still works without the module list: it then uses all of them.
   }
@@ -66,6 +69,7 @@ const form = ref({
   password: '',
   modules: [] as string[],
   allModules: true,
+  planId: '',
 });
 const slugTouched = ref(false);
 
@@ -77,6 +81,7 @@ function startCreate() {
     password: generatePassword(),
     modules: [],
     allModules: true,
+    planId: '',
   };
   slugTouched.value = false;
   error.value = '';
@@ -106,7 +111,7 @@ async function create() {
       name: f.name.trim(),
       owner_email: f.email.trim(),
       owner_password: f.password,
-      ...(!f.allModules && { modules: f.modules }),
+      ...(f.planId ? { plan_id: f.planId } : !f.allModules && { modules: f.modules }),
     });
     creating.value = false;
     form.value.password = '';
@@ -254,7 +259,26 @@ async function create() {
               </template>
             </q-input>
 
-            <div>
+            <div v-if="plans.length">
+              <div class="ig-eyebrow q-mb-xs">{{ t('admin.tenants.new.plan') }}</div>
+              <q-select
+                v-model="form.planId"
+                outlined
+                dense
+                emit-value
+                map-options
+                :options="[
+                  { label: t('admin.tenants.new.noPlan'), value: '' },
+                  ...plans.map((p) => ({
+                    label: `${p.name} · ${formatMinor(p.price_minor, p.currency)}`,
+                    value: p.id,
+                  })),
+                ]"
+              />
+              <div class="text-caption ig-muted q-mt-xs">{{ t('admin.tenants.new.planHint') }}</div>
+            </div>
+
+            <div v-if="!form.planId">
               <div class="ig-eyebrow q-mb-xs">{{ t('admin.tenants.new.modules') }}</div>
               <q-toggle
                 v-model="form.allModules"

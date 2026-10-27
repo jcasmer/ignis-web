@@ -5,7 +5,14 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { ApiError } from '@/api/http';
-import type { Balance, CreditOrder, CreditPackage, LedgerEntry, UsageItem } from '@/api/tenant';
+import type {
+  Balance,
+  CreditOrder,
+  CreditPackage,
+  LedgerEntry,
+  OwnPlan,
+  UsageItem,
+} from '@/api/tenant';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import EChart from '@/components/EChart.vue';
 import EmptyState from '@/components/EmptyState.vue';
@@ -22,6 +29,7 @@ const $q = useQuasar();
 const session = useSessionStore();
 
 const balance = ref<Balance | null>(null);
+const own = ref<OwnPlan | null>(null);
 const usage = ref<UsageItem[]>([]);
 const packages = ref<CreditPackage[]>([]);
 const orders = ref<CreditOrder[]>([]);
@@ -56,13 +64,16 @@ async function load() {
   failed.value = false;
   const today = new Date();
   try {
-    const [b, u, p, o, l] = await Promise.all([
+    const [b, u, p, o, l, mine] = await Promise.all([
       session.data.balance(),
       session.data.usage({ from: daysBefore(today, 29), to: daysBefore(today, 0), by: 'day' }),
       session.data.packages(),
       session.data.orders(),
       session.data.ledger({ limit: 20 }),
+      // The plan is a courtesy of this page: without it the credit still shows.
+      session.data.ownPlan().catch(() => null),
     ]);
+    own.value = mine;
     balance.value = b;
     usage.value = u.items;
     packages.value = p.items.filter((x) => x.active);
@@ -183,6 +194,49 @@ const packageOf = (id: string) => packages.value.find((p) => p.id === id);
     <IgAlert v-if="expiringSoon" tone="warn" class="q-mb-md">
       {{ t('tenant.credits.expiringSoon') }}
     </IgAlert>
+
+    <div v-if="own?.plan" class="ig-card q-pa-lg q-mb-md">
+      <div class="row items-center q-col-gutter-md">
+        <div class="col-12 col-sm">
+          <div class="ig-eyebrow q-mb-xs">{{ t('tenant.credits.plan.title') }}</div>
+          <div class="text-h6 text-weight-bold">
+            {{ own.plan.name }}
+            <span class="text-body2 ig-muted q-ml-sm">
+              {{
+                t('tenant.credits.plan.price', {
+                  price: formatMinor(own.plan.price_minor, own.plan.currency),
+                })
+              }}
+            </span>
+          </div>
+          <div v-if="own.plan.description" class="text-body2 ig-muted q-mt-xs">
+            {{ own.plan.description }}
+          </div>
+        </div>
+        <div class="col-12 col-sm-auto text-body2">
+          <template v-if="own.quota.allowance_micro > 0">
+            <div>
+              {{
+                t('tenant.credits.plan.includes', {
+                  amount: formatMicroUsd(own.quota.allowance_micro),
+                })
+              }}
+            </div>
+            <div class="ig-muted">
+              {{
+                t('tenant.credits.plan.renews', {
+                  date: new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(
+                    new Date(own.quota.renews_at),
+                  ),
+                })
+              }}
+            </div>
+          </template>
+          <div v-else class="ig-muted">{{ t('tenant.credits.plan.noCredit') }}</div>
+        </div>
+      </div>
+      <div class="text-caption ig-muted q-mt-md">{{ t('tenant.credits.plan.rule') }}</div>
+    </div>
 
     <div class="row q-col-gutter-md q-mb-md">
       <div class="col-12 col-md-5">

@@ -69,3 +69,21 @@ Las personas que operan la plataforma. **Solo un super admin** ve esta sección.
 - Cada persona muestra su estado (**Activo/Desactivado**) y si tiene **segundo factor activo**. A ti te marca **Tú**.
 - **Desactivar:** sus sesiones terminan al instante y no puede ingresar hasta que la actives.
 - **Quitar segundo factor:** úsalo si perdió su teléfono; se borran su segundo factor y sus códigos de recuperación y lo configura de nuevo al ingresar.
+
+## Planes {#planes}
+
+Lo que vende Ignis. Cada plan junta **módulos**, **límites**, el **crédito de IA que incluye cada mes** y su **precio mensual**. Traen tres de ejemplo (**Sin IA**, **Con IA**, **Premium**) y puedes cambiarles **cualquier cosa** o crear otros, incluidos planes **A la medida** para un cliente con su propio precio.
+
+| Campo                                  | Qué es                                                                                                                                                                                |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Nombre del plan**, **Identificador** | El nombre visible y un código fijo (minúsculas, números y guiones; no cambia después).                                                                                                |
+| **Qué incluye**                        | Descripción para el equipo.                                                                                                                                                           |
+| **Tipo**                               | **Estándar** o **A la medida**.                                                                                                                                                       |
+| **Precio mensual** y **Moneda**        | Informativo: aún no se cobra la suscripción en línea.                                                                                                                                 |
+| **Crédito de IA al mes**               | Se entrega cada mes, **vence con el mes y no se acumula**. 0 = el plan no incluye IA. El crédito que el cliente compre aparte dura hasta 6 meses y se gasta **después** del del plan. |
+| **Módulos** y **Límites**              | Lo que el cliente puede usar y hasta dónde.                                                                                                                                           |
+| **A la venta**                         | Un plan retirado no se puede asignar a nadie nuevo; quienes lo tienen lo conservan.                                                                                                   |
+
+- **Editar un plan** llega a **todos** sus clientes; lo que cada uno tenga ajustado aparte se conserva. Si el plan sube el crédito de IA, se da lo que falta del mes en curso; nunca se quita crédito.
+- **Asignar un plan** a un cliente: al crearlo (selector **Plan**) o en su pestaña [Plan](02-pestana-plan.md), tarjeta **Plan del cliente**. Recibe los módulos y límites del plan y se borran sus ajustes.
+- Lo que cambies a mano en esa pestaña queda como **ajuste** de ese cliente (se muestra como «Este cliente se aparta del plan»).

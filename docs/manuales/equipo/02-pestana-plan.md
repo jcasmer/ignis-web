@@ -76,3 +76,7 @@ Notas:
 - **El cliente dice «Tu plan no incluye…»:** falta el módulo en esta pestaña.
 - **Un proveedor de IA aparece deshabilitado:** «no configurado» = la plataforma no tiene la clave de ese proveedor; «sin precio» = ningún modelo suyo tiene precio vigente en **Precios de IA**.
 - **El asistente dejó de responder y el cliente tiene saldo:** revisa el límite **Gasto de IA por día**; si se agotó, no responde hasta mañana o hasta que lo subas.
+
+## Tarjeta «Plan del cliente»
+
+Arriba de la pestaña está el **plan** del cliente (nombre, precio y crédito de IA mensual) y un selector para cambiarlo o dejarlo **sin plan**. Asignar un plan reemplaza sus módulos y límites por los del plan. Lo que cambies debajo queda como ajuste y se conserva cuando el plan cambie. Ver [Planes](12-apartados-generales.md#planes).
