@@ -950,6 +950,12 @@ export default {
       margin: 'El cliente paga {price} y recibe {credit} de crédito.',
     },
     prices: {
+      allProviders: 'Todos los proveedores',
+      searchModel: 'Buscar un modelo',
+      clearFilters: 'Quitar filtros',
+      showing: 'Mostrando {shown} de {total} modelos',
+      noMatch: 'Ningún modelo coincide',
+      noMatchHint: 'Prueba con otro proveedor o con parte del nombre del modelo.',
       title: 'Precios de los modelos de IA',
       intro:
         'Lo que cuesta cada modelo por millón de tokens, según la página oficial de su proveedor. Con estos precios se cobra a todos los clientes.',

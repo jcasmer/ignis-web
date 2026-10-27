@@ -9,6 +9,7 @@ import IgAlert from '@/components/IgAlert.vue';
 import IgButton from '@/components/IgButton.vue';
 import { useSessionStore } from '@/stores/session';
 import {
+  filterGroups,
   groupByModel,
   PROVIDER_LABEL,
   PROVIDERS,
@@ -41,10 +42,31 @@ onMounted(load);
 
 const providerOptions = PROVIDERS.map((p) => ({ value: p, label: PROVIDER_LABEL[p] ?? p }));
 const groups = computed(() => groupByModel(items.value));
+
+// --- filters -------------------------------------------------------------------------
+const provider = ref('');
+const query = ref('');
+const hasFilters = computed(() => !!(provider.value || query.value.trim()));
+const shownGroups = computed(() =>
+  filterGroups(groups.value, { provider: provider.value, query: query.value }),
+);
+// Only the providers that have a model, so no option leads to an empty list.
+const filterProviders = computed(() => [
+  { value: '', label: t('admin.prices.allProviders') },
+  ...[...new Set(groups.value.map((g) => g.provider))].map((p) => ({
+    value: p,
+    label: PROVIDER_LABEL[p] ?? p,
+  })),
+]);
+function clearFilters() {
+  provider.value = '';
+  query.value = '';
+}
+
 const providers = computed(() =>
-  [...new Set(groups.value.map((g) => g.provider))].map((p) => ({
+  [...new Set(shownGroups.value.map((g) => g.provider))].map((p) => ({
     provider: p,
-    models: groups.value.filter((g) => g.provider === p),
+    models: shownGroups.value.filter((g) => g.provider === p),
   })),
 );
 
@@ -139,6 +161,48 @@ async function save() {
         <IgButton variant="ghost" size="sm" :label="t('common.retry')" @click="load" />
       </template>
     </IgAlert>
+
+    <div v-if="items.length" class="ig-card q-pa-md q-mb-md">
+      <div class="row q-col-gutter-sm items-center">
+        <div class="col-12 col-sm-4">
+          <q-select
+            v-model="provider"
+            outlined
+            dense
+            emit-value
+            map-options
+            behavior="menu"
+            popup-content-class="ig-menu"
+            :options="filterProviders"
+            :label="t('admin.prices.provider')"
+          />
+        </div>
+        <div class="col-12 col-sm-5">
+          <q-input v-model="query" outlined dense clearable :label="t('admin.prices.searchModel')">
+            <template #prepend><q-icon name="search" /></template>
+          </q-input>
+        </div>
+        <div v-if="hasFilters" class="col-12 col-sm-auto">
+          <IgButton
+            variant="ghost"
+            size="sm"
+            :label="t('admin.prices.clearFilters')"
+            @click="clearFilters"
+          />
+        </div>
+      </div>
+      <div class="text-caption ig-muted q-mt-sm">
+        {{ t('admin.prices.showing', { shown: shownGroups.length, total: groups.length }) }}
+      </div>
+    </div>
+
+    <div v-if="items.length && !shownGroups.length" class="ig-card q-mb-md">
+      <EmptyState
+        icon="search_off"
+        :title="t('admin.prices.noMatch')"
+        :hint="t('admin.prices.noMatchHint')"
+      />
+    </div>
 
     <q-skeleton v-if="loading && !items.length" height="160px" />
     <div v-else-if="!items.length && !failed" class="ig-card">

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ModelPriceItem } from '@/api/ops';
-import { groupByModel, toPriceBody, type PriceForm } from '@/utils/prices';
+import { filterGroups, groupByModel, toPriceBody, type PriceForm } from '@/utils/prices';
 
 const item = (over: Partial<ModelPriceItem>): ModelPriceItem => ({
   provider: 'gemini',
@@ -80,5 +80,24 @@ describe('toPriceBody', () => {
     [{ verifiedOn: '' }, 'verified'],
   ])('rejects %j as %s', (over, error) => {
     expect(toPriceBody(form(over), now)).toEqual({ ok: false, error });
+  });
+});
+
+describe('filterGroups', () => {
+  const groups = [
+    { provider: 'gemini', model: 'gemini-3.5-flash-lite', current: null, scheduled: [] },
+    { provider: 'gemini', model: 'gemini-3.8-flash', current: null, scheduled: [] },
+    { provider: 'anthropic', model: 'claude-fable-5-1', current: null, scheduled: [] },
+  ];
+
+  it('keeps everything with no filter', () => {
+    expect(filterGroups(groups, { provider: '', query: '' })).toHaveLength(3);
+  });
+
+  it('narrows by provider, by a piece of the model, or by both', () => {
+    expect(filterGroups(groups, { provider: 'gemini', query: '' })).toHaveLength(2);
+    expect(filterGroups(groups, { provider: '', query: ' FLASH ' })).toHaveLength(2);
+    expect(filterGroups(groups, { provider: 'gemini', query: 'lite' })).toEqual([groups[0]]);
+    expect(filterGroups(groups, { provider: 'anthropic', query: 'flash' })).toEqual([]);
   });
 });

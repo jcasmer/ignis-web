@@ -42,6 +42,20 @@ export function groupByModel(items: ModelPriceItem[], now = new Date()): ModelGr
   );
 }
 
+/** What narrows the list of models: a provider, and a piece of the name of the model. */
+export interface PriceFilter {
+  provider: string;
+  query: string;
+}
+
+/** The models that match a filter: the provider exactly and the text anywhere in the name, ignoring case. */
+export function filterGroups(groups: ModelGroup[], f: PriceFilter): ModelGroup[] {
+  const q = f.query.trim().toLowerCase();
+  return groups.filter(
+    (g) => (!f.provider || g.provider === f.provider) && (!q || g.model.toLowerCase().includes(q)),
+  );
+}
+
 export interface PriceForm {
   provider: string;
   model: string;
