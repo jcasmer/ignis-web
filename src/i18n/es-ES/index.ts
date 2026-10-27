@@ -834,6 +834,7 @@ export default {
       automations: 'Automatizaciones',
       privacy: 'Privacidad',
       manage: 'Gestión',
+      help: 'Ayuda',
     },
   },
   admin: {
@@ -1319,6 +1320,7 @@ export default {
       prices: 'Precios de IA',
       operators: 'Equipo',
       demo: 'Demo',
+      help: 'Ayuda',
     },
   },
   whatsapp: {
@@ -1515,6 +1517,26 @@ export default {
     resetBody:
       'El asistente olvida lo que le contaste y responde de forma amable y breve en el idioma del cliente.',
     resetDone: 'El asistente volvió a lo básico.',
+  },
+  manuals: {
+    eyebrow: 'Ayuda',
+    title: 'Manuales',
+    intro: 'Guías paso a paso de cada pantalla, con ejemplos. Busca la sección que necesitas.',
+    introOps:
+      'Las guías del equipo de Ignis y la del cliente: qué hace cada pestaña, cada opción y cómo hacer las tareas paso a paso.',
+    all: 'Todos los manuales',
+    notFound: 'No encontramos ese manual',
+    notFoundHint: 'Pudo cambiar de lugar o no está disponible para tu cuenta.',
+    series: {
+      equipo: {
+        title: 'Equipo de Ignis',
+        hint: 'Cómo dar de alta un cliente y configurar cada pestaña de su ficha.',
+      },
+      cliente: {
+        title: 'Guía del cliente',
+        hint: 'Cómo usar el panel del negocio día a día.',
+      },
+    },
   },
   notFound: { title: 'No encontramos esa página', home: 'Ir al inicio' },
 };
