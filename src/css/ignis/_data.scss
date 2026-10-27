@@ -177,10 +177,9 @@
   }
 
   &--out {
-    background: linear-gradient(180deg, var(--ig-brand-500), var(--ig-brand-700));
-    color: var(--ig-on-brand);
+    background: var(--ig-solid);
+    color: var(--ig-on-solid);
     border-bottom-right-radius: 6px;
-    box-shadow: 0 4px 14px -6px rgb(var(--ig-brand-rgb) / 50%);
   }
 
   &__meta {
@@ -256,8 +255,8 @@ body.body--dark .ig-package__credit {
     align-items: center;
     gap: 12px;
     padding: 14px 16px;
-    background: linear-gradient(180deg, var(--ig-brand-600), var(--ig-brand-700));
-    color: var(--ig-on-brand);
+    background: var(--ig-solid);
+    color: var(--ig-on-solid);
   }
 
   &__body {

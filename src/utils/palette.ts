@@ -5,23 +5,23 @@ import type { Metric } from '@/utils/stats';
  *
  * 1. A metric has ONE colour, everywhere: its KPI card, its line, its bars and
  *    its row in the reports. People learn "violet is conversations" once.
- * 2. Brand teal is the colour of the main activity (messages received, and the
+ * 2. The ember is the colour of the main activity (messages received, and the
  *    total of messages), not a default for everything.
  * 3. A comparison draws the metric in its colour and the previous period in a
  *    neutral stone, dashed: the eye goes to what is current.
  *
  * Hues are spread around the wheel so they stay apart, and none of them is red:
- * red means error in this product. Orange is "pay attention".
+ * red means error in this product. The ember is the brand, so the rest stay cool or neutral.
  */
 export const chartColors = {
-  brand: '#0d8f83',
+  brand: '#e8590c',
   blue: '#4f7fd1',
   violet: '#8a6bbf',
-  green: '#5aa469',
-  gold: '#c9a227',
-  orange: '#e0791e',
+  green: '#4f9d6b',
+  gold: '#b8962e',
+  orange: '#c0568a',
   slate: '#7c8aa5',
-  stone: '#9aa8b0',
+  stone: '#a3a3a0',
 } as const;
 
 /** The fixed colour of each metric of the statistics. */

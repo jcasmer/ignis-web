@@ -115,18 +115,6 @@ export const validPhone = (to: string): boolean => /^[0-9]{8,15}$/.test(to.trim(
 /** The number of the account Meta shows: digits only. */
 export const validAccountId = (id: string): boolean => id === '' || /^[0-9]{1,40}$/.test(id);
 
-/**
- * The preconditions the API explains in English, as the text the console has for them; null for
- * anything else (which is shown as the API said it, because it is what Meta said).
- */
-export function knownDetail(detail: string): 'noAccount' | 'noChannel' | 'notApproved' | null {
-  const d = detail.toLowerCase();
-  if (d.startsWith('first enter the id')) return 'noAccount';
-  if (d.startsWith('first connect your whatsapp number')) return 'noChannel';
-  if (d.startsWith('only an approved template can be sent')) return 'notApproved';
-  return null;
-}
-
 /** A fresh form. */
 export const emptyTemplate = (): WhatsAppTemplateInput => ({
   name: '',

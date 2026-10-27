@@ -17,7 +17,7 @@ import IgButton from '@/components/IgButton.vue';
 import WhatsAppSendDialog from '@/components/WhatsAppSendDialog.vue';
 import WhatsAppTemplateForm from '@/components/WhatsAppTemplateForm.vue';
 import { refreshOnFocus } from '@/composables/refreshOnFocus';
-import { knownDetail, validAccountId, variablesOf } from '@/utils/whatsapp';
+import { validAccountId, variablesOf } from '@/utils/whatsapp';
 
 const props = defineProps<{
   client: WhatsAppClient;
@@ -40,8 +40,6 @@ function explain(e: unknown): string {
     }
     if (e.status === 409) return t('whatsapp.errors.exists');
     if (e.status === 404) return t('whatsapp.errors.gone');
-    const known = knownDetail(e.detail);
-    if (known) return t(`whatsapp.errors.${known}`);
     if (e.status === 400 && e.detail) return t('whatsapp.errors.refusedWith', { why: e.detail });
     if (e.status === 400) return t('whatsapp.errors.refused');
   }
