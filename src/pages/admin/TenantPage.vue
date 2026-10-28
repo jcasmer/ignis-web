@@ -4,6 +4,8 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
+import { ApiError } from '@/api/http';
+
 import type {
   Catalog,
   Entitlements,
@@ -326,6 +328,84 @@ async function setMfa(v: boolean) {
   }
 }
 
+// --- suspend and reactivate -------------------------------------------------------
+const suspendOpen = ref(false);
+const suspendReason = ref('');
+const reactivateOpen = ref(false);
+const statusBusy = ref(false);
+const suspended = computed(() => tenant.value?.status === 'suspended');
+
+async function changeStatus(status: 'active' | 'suspended') {
+  statusBusy.value = true;
+  try {
+    await session.ops.setTenantStatus(id, status, suspendReason.value.trim());
+    if (tenant.value) {
+      tenant.value = {
+        ...tenant.value,
+        status,
+        suspended_reason: status === 'suspended' ? suspendReason.value.trim() : '',
+      };
+    }
+    suspendOpen.value = false;
+    reactivateOpen.value = false;
+    suspendReason.value = '';
+    $q.notify({
+      type: 'positive',
+      message: t(
+        status === 'suspended'
+          ? 'admin.tenant.status.suspended'
+          : 'admin.tenant.status.reactivated',
+      ),
+    });
+  } catch {
+    $q.notify({ type: 'negative', message: t('common.loadError') });
+  } finally {
+    statusBusy.value = false;
+  }
+}
+
+// --- the email of the owner ----------------------------------------------------------
+const ownerEmail = ref('');
+const ownerEmailBusy = ref(false);
+const ownerEmailLink = ref('');
+const ownerEmailError = ref('');
+
+async function requestOwnerEmail() {
+  ownerEmailError.value = '';
+  ownerEmailLink.value = '';
+  if (!isEmail(ownerEmail.value.trim())) {
+    ownerEmailError.value = t('admin.tenant.owner.invalid');
+    return;
+  }
+  ownerEmailBusy.value = true;
+  try {
+    const r = await session.ops.requestOwnerEmail(
+      id,
+      ownerEmail.value.trim(),
+      tenant.value?.name ?? '',
+    );
+    if (r.sent) {
+      $q.notify({
+        type: 'positive',
+        message: t('admin.tenant.owner.sent', { email: ownerEmail.value.trim() }),
+      });
+      ownerEmail.value = '';
+    } else {
+      ownerEmailLink.value = r.link ?? '';
+      $q.notify({ type: 'warning', message: t('admin.tenant.security.notSent') });
+    }
+  } catch (e) {
+    ownerEmailError.value =
+      e instanceof ApiError && e.status === 409
+        ? t('admin.tenant.owner.taken')
+        : e instanceof ApiError && e.status === 400
+          ? t('admin.tenant.owner.invalid')
+          : t('common.loadError');
+  } finally {
+    ownerEmailBusy.value = false;
+  }
+}
+
 const inviting = ref(false);
 const inviteLink = ref('');
 
@@ -559,6 +639,13 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
         <div class="col" style="min-width: 0">
           <h1 class="text-h4 q-my-none ellipsis">{{ tenant?.name ?? id }}</h1>
           <div class="ig-muted ellipsis">{{ tenant?.slug }}</div>
+          <div
+            v-if="suspended && tenant?.suspended_reason"
+            class="text-caption"
+            style="color: var(--ig-warn)"
+          >
+            {{ t('admin.tenant.status.why', { reason: tenant.suspended_reason }) }}
+          </div>
         </div>
         <span
           v-if="tenant"
@@ -816,6 +903,65 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
           />
           <div class="text-caption ig-muted q-mt-sm">{{ t('admin.tenant.security.mfaHint') }}</div>
           <q-separator class="q-my-md" />
+          <div class="text-weight-medium">{{ t('admin.tenant.status.title') }}</div>
+          <div class="text-caption ig-muted q-mb-sm">
+            {{
+              suspended
+                ? t('admin.tenant.status.suspendedHint')
+                : t('admin.tenant.status.activeHint')
+            }}
+          </div>
+          <IgButton
+            v-if="!suspended"
+            variant="secondary"
+            icon="pause_circle"
+            :label="t('admin.tenant.status.suspend')"
+            @click="suspendOpen = true"
+          />
+          <IgButton
+            v-else
+            variant="primary"
+            icon="play_circle"
+            :label="t('admin.tenant.status.reactivate')"
+            @click="reactivateOpen = true"
+          />
+          <q-separator class="q-my-md" />
+          <div class="text-weight-medium">{{ t('admin.tenant.owner.title') }}</div>
+          <div class="text-caption ig-muted q-mb-sm">{{ t('admin.tenant.owner.hint') }}</div>
+          <q-form class="row q-col-gutter-sm items-start" @submit.prevent="requestOwnerEmail">
+            <div class="col-12 col-sm">
+              <q-input
+                v-model="ownerEmail"
+                outlined
+                dense
+                type="email"
+                autocomplete="off"
+                :label="t('admin.tenant.owner.label')"
+                :error="!!ownerEmailError"
+                :error-message="ownerEmailError"
+              />
+            </div>
+            <div class="col-12 col-sm-auto">
+              <IgButton
+                type="submit"
+                variant="secondary"
+                icon="mark_email_read"
+                :loading="ownerEmailBusy"
+                :label="t('admin.tenant.owner.send')"
+              />
+            </div>
+          </q-form>
+          <q-input
+            v-if="ownerEmailLink"
+            :model-value="ownerEmailLink"
+            readonly
+            outlined
+            dense
+            class="q-mt-md"
+            input-class="ig-code"
+            :label="t('admin.tenants.new.fallbackLink')"
+          />
+          <q-separator class="q-my-md" />
           <div class="text-weight-medium">{{ t('admin.tenant.security.inviteTitle') }}</div>
           <div class="text-caption ig-muted q-mb-sm">
             {{ t('admin.tenant.security.inviteHint') }}
@@ -1006,6 +1152,56 @@ const statementValue = (k: (typeof STATEMENT_ROWS)[number]) =>
       :confirm-label="t('admin.tenant.plan.save')"
       :cancel-label="t('common.cancel')"
       @confirm="savePlan"
+    />
+    <q-dialog v-model="suspendOpen" :persistent="statusBusy">
+      <q-card
+        class="ig-card ig-card--raised"
+        style="width: 480px; max-width: 94vw; border-radius: 20px"
+      >
+        <q-form @submit.prevent="changeStatus('suspended')">
+          <q-card-section class="q-gutter-y-md">
+            <div class="text-h6">
+              {{ t('admin.tenant.status.suspendTitle', { name: tenant?.name ?? '' }) }}
+            </div>
+            <p class="ig-muted q-my-none">{{ t('admin.tenant.status.suspendBody') }}</p>
+            <q-input
+              v-model="suspendReason"
+              outlined
+              type="textarea"
+              autogrow
+              autofocus
+              maxlength="300"
+              counter
+              :label="t('admin.tenant.status.reason')"
+              :hint="t('admin.tenant.status.reasonHint')"
+            />
+          </q-card-section>
+          <q-card-actions align="right" class="q-pa-md">
+            <IgButton
+              variant="ghost"
+              :disable="statusBusy"
+              :label="t('common.cancel')"
+              @click="suspendOpen = false"
+            />
+            <IgButton
+              type="submit"
+              variant="primary"
+              :loading="statusBusy"
+              :disable="!suspendReason.trim()"
+              :label="t('admin.tenant.status.suspend')"
+            />
+          </q-card-actions>
+        </q-form>
+      </q-card>
+    </q-dialog>
+    <ConfirmDialog
+      v-model="reactivateOpen"
+      :loading="statusBusy"
+      :title="t('admin.tenant.status.reactivateTitle', { name: tenant?.name ?? '' })"
+      :message="t('admin.tenant.status.reactivateBody')"
+      :confirm-label="t('admin.tenant.status.reactivate')"
+      :cancel-label="t('common.cancel')"
+      @confirm="changeStatus('active')"
     />
     <ConfirmDialog
       v-model="assignOpen"

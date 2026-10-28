@@ -21,6 +21,8 @@ export interface TenantListItem {
   model_profile: 'economic' | 'quality';
   modules: string[];
   created_at: string;
+  /** Why the account is suspended; empty when it is active. */
+  suspended_reason?: string;
 }
 
 export interface LimitDef {
@@ -262,6 +264,12 @@ export function opsApi(http: Http) {
       http.get<{ items: TenantListItem[]; next_cursor?: string }>(`/ops/tenants${query(p)}`),
     createTenant: (input: CreateTenantInput) =>
       http.post<{ id: string; activation: Activation | null }>('/ops/tenants', input),
+    /** Suspend or reactivate an account; the reason is required to suspend. */
+    setTenantStatus: (id: string, status: 'active' | 'suspended', reason = '') =>
+      http.put<void>(`/ops/tenants/${t(id)}/status`, { status, reason }),
+    /** Ask to move the owner to another address; nothing changes until it is confirmed there. */
+    requestOwnerEmail: (id: string, email: string, business: string) =>
+      http.post<Activation>(`/ops/tenants/${t(id)}/owner-email`, { email, business }),
     resendOwnerInvitation: (id: string, business: string) =>
       http.post<Activation>(`/ops/tenants/${t(id)}/owner-invitation`, { business }),
     catalog: () => http.get<Catalog>('/ops/catalog'),

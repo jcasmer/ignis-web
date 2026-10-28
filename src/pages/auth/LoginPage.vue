@@ -23,6 +23,8 @@ const password = ref('');
 const reveal = ref(false);
 const busy = ref(false);
 const error = ref('');
+// Taken here from a session that turned out to be suspended.
+const wasSuspended = route.query.suspended === '1';
 
 const required = (v: string) => !!v || t('auth.errors.required');
 const emailRule = (v: string) => /^\S+@\S+\.\S+$/.test(v) || t('auth.errors.email');
@@ -50,6 +52,7 @@ async function submit() {
       <p class="ig-muted q-mt-xs q-mb-none">{{ t(`auth.${area}.subtitle`) }}</p>
     </div>
 
+    <IgAlert v-if="wasSuspended && !error" tone="warn">{{ t('auth.errors.suspended') }}</IgAlert>
     <IgAlert v-if="error" tone="error">{{ error }}</IgAlert>
 
     <q-input

@@ -87,6 +87,8 @@ export function authApi(http: Http) {
         { token, new_password: newPassword },
         { auth: false },
       ),
+    confirmEmail: (token: string) =>
+      http.post<void>('/auth/email/confirm', { token }, { auth: false }),
     tenantProfile: () => http.get<TenantProfile>('/me'),
     operatorProfile: () => http.get<OperatorProfile>('/ops/me'),
   };

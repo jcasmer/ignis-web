@@ -89,7 +89,15 @@ export default {
       done: 'Contraseña cambiada. Ya puedes ingresar.',
       missing: 'El enlace no es válido. Pide uno nuevo.',
     },
+    confirmEmail: {
+      title: 'Confirmar tu correo',
+      done: 'Listo: tu cuenta ahora usa este correo. Ingresa con él y tu misma contraseña.',
+      taken: 'Ese correo ya lo usa otra cuenta. Avisa al equipo de Ignis.',
+      invalid:
+        'El enlace no es válido o ya venció. Pídele al equipo de Ignis que lo envíe de nuevo.',
+    },
     errors: {
+      suspended: 'Esta cuenta está suspendida. Escribe al equipo de Ignis para reactivarla.',
       invalid: 'Correo o contraseña incorrectos.',
       invalidCode: 'El código no es correcto.',
       locked: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
@@ -1422,6 +1430,34 @@ export default {
         added: 'Se agregan: {list}.',
         applies: 'Se aplican de inmediato.',
         reset: 'Descartar cambios',
+      },
+      status: {
+        title: 'Estado de la cuenta',
+        activeHint:
+          'Suspender cierra el acceso del cliente y detiene al asistente y las automatizaciones. Sus datos se conservan y se puede reactivar.',
+        suspendedHint:
+          'La cuenta está suspendida: nadie del cliente puede ingresar y el asistente no responde. Sus datos se conservan.',
+        suspend: 'Suspender la cuenta',
+        reactivate: 'Reactivar la cuenta',
+        suspendTitle: '¿Suspender la cuenta de {name}?',
+        suspendBody:
+          'Dejan de servir sus sesiones y sus llaves, el asistente no responde y las automatizaciones no corren. El dueño recibe un correo con el motivo.',
+        reason: 'Motivo',
+        reasonHint: 'Lo lee el dueño. Por ejemplo: falta de pago de la factura de octubre.',
+        reactivateTitle: '¿Reactivar la cuenta de {name}?',
+        reactivateBody: 'Vuelve a funcionar de inmediato y el dueño recibe un correo avisándole.',
+        suspended: 'Cuenta suspendida.',
+        reactivated: 'Cuenta reactivada.',
+        why: 'Suspendida: {reason}',
+      },
+      owner: {
+        title: 'Correo del dueño',
+        hint: 'Para cambiarlo, escribe el correo nuevo: le llega un enlace para confirmarlo y al correo actual le llega un aviso. Hasta que lo confirme, la cuenta sigue con el correo anterior.',
+        label: 'Correo nuevo',
+        send: 'Enviar confirmación',
+        sent: 'Enviamos la confirmación a {email}.',
+        invalid: 'Escribe un correo válido.',
+        taken: 'Ya existe una cuenta con ese correo, o es el mismo del dueño.',
       },
       security: {
         inviteTitle: 'Correo de activación del dueño',

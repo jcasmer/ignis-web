@@ -54,6 +54,8 @@ export const useSessionStore = defineStore('session', () => {
     baseUrl: API_URL,
     getToken: () => accessToken.value,
     renew: () => renew(),
+    // Navigating afresh drops everything the suspended session still holds in memory.
+    onSuspended: () => window.location.assign('/login?suspended=1'),
   });
   const api = authApi(http);
   const data = tenantApi(http);

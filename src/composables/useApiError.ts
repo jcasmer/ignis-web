@@ -15,6 +15,7 @@ export function useApiError() {
     context: 'login' | 'code' | 'password' | 'other' = 'other',
   ): string {
     if (!(err instanceof ApiError)) return t('auth.errors.network');
+    if (err.code === 'tenant_suspended') return t('auth.errors.suspended');
     if (err.status === 429) return t('auth.errors.locked');
     if (err.status === 401)
       return context === 'code' ? t('auth.errors.invalidCode') : t('auth.errors.invalid');
