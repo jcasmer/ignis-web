@@ -24,7 +24,18 @@ function authPages(area: Area, prefix: string): RouteRecordRaw[] {
     { path: `${prefix}code`, component: () => import('@/pages/auth/CodePage.vue'), meta },
     { path: `${prefix}forgot`, component: () => import('@/pages/auth/ForgotPage.vue'), meta },
     ...(area === 'tenant'
-      ? [{ path: `${prefix}activate`, component: () => import('@/pages/auth/ResetPage.vue'), meta }]
+      ? [
+          {
+            path: `${prefix}activate`,
+            component: () => import('@/pages/auth/ResetPage.vue'),
+            meta,
+          },
+          {
+            path: `${prefix}confirm-email`,
+            component: () => import('@/pages/auth/ConfirmEmailPage.vue'),
+            meta,
+          },
+        ]
       : []),
     {
       path: `${prefix}reset-password`,

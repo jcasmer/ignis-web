@@ -209,6 +209,9 @@ async function create() {
         <div class="col" style="min-width: 0">
           <div class="text-weight-bold ellipsis">{{ x.name }}</div>
           <div class="text-caption ig-muted ellipsis">
+            <template v-if="x.status === 'suspended' && x.suspended_reason">
+              {{ x.suspended_reason }} ·
+            </template>
             {{ x.slug }} · {{ x.modules.length }} {{ t('admin.tenants.modules') }} ·
             {{ t(`admin.tenants.profile.${x.model_profile}`) }} · {{ when(x.created_at) }}
           </div>

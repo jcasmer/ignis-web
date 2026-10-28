@@ -29,6 +29,8 @@ export interface HttpOptions {
   getToken: () => string | null;
   /** Renews the session; true when there is a new access token. */
   renew: () => Promise<boolean>;
+  /** Called when the account of the signed-in business turns out to be suspended. */
+  onSuspended?: () => void;
   fetchImpl?: typeof fetch;
 }
 
@@ -88,7 +90,12 @@ export function createHttp(options: HttpOptions): Http {
     if (res.status === 401 && opts.auth !== false && !opts.cookie && (await options.renew())) {
       res = await send(method, path, opts);
     }
-    if (!res.ok) throw await toError(res);
+    if (!res.ok) {
+      const error = await toError(res);
+      // A suspended account has no session: the person is taken to the sign-in with the reason.
+      if (error.code === 'tenant_suspended' && opts.auth !== false) options.onSuspended?.();
+      throw error;
+    }
     if (res.status === 204) return undefined as T;
     return (await res.json()) as T;
   }
