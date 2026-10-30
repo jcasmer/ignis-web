@@ -33,6 +33,7 @@ Cómo leerlos:
 5. [Conectar WhatsApp de principio a fin](equipo/13-conectar-whatsapp.md)
 6. [Preguntas y problemas frecuentes](equipo/14-problemas-frecuentes.md)
 7. [Correos de Ignis: activación, invitaciones y avisos de seguridad](equipo/15-correos-de-ignis.md)
+8. [Lista de pruebas reales: WhatsApp, automatizaciones con y sin IA, Zoho](equipo/16-lista-de-pruebas-reales.md)
 
 ## Serie del cliente
 
